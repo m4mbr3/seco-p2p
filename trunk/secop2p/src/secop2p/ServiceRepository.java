@@ -29,6 +29,7 @@ public class ServiceRepository {
     private PreparedStatement selectServiceEngines;
     private PreparedStatement addService;
     private PreparedStatement addEngine;
+    private PreparedStatement addServiceEngine;
     private PreparedStatement delService;
     private PreparedStatement delServiceEngine;
     private PreparedStatement delEngine;
@@ -61,16 +62,21 @@ public class ServiceRepository {
                 "INSERT OR ROLLBACK INTO services (name) VALUES (? ) ");
         addEngine = conn.prepareStatement(
                 "INSERT OR ROLLBACK INTO engines (name, host, port) VALUES (?,?,?)" );
+        addServiceEngine = conn.prepareStatement(
+                "INSERT OR ROLLBACK INTO service_map (service_id,engine_id) VALUES (?,?)");
         delService = conn.prepareStatement(
                 "DELETE FROM services  WHERE id = ?");
         delServiceEngine = conn.prepareStatement(
-                "DELETE FROM services_to_engines WHERE service_id = ?");
+                "DELETE FROM service_map WHERE service_id = ?");
         delEngine = conn.prepareStatement(
                 "DELETE FROM engines  WHERE id = ?");
         delEngineService = conn.prepareStatement(
-                "DELETE FROM service_to_engines WHERE engine_id = ?");
+                "DELETE FROM service_map WHERE engine_id = ?");
        }
 
+    /*
+     * Function to get list of ALL services
+     */
     public Service[] getServicesList() throws SQLException{
         ResultSet rs;
         synchronized(selectServicesList){
@@ -84,6 +90,9 @@ public class ServiceRepository {
         return sl.toArray(new Service[0]);
     }
 
+    /*
+     *  Function to get list of ALL engines
+     */
     public EngineInfo[] getEnginesList() throws SQLException{
         ResultSet rs;
         synchronized(selectEnginesList){
@@ -101,6 +110,9 @@ public class ServiceRepository {
         return sl.toArray(new EngineInfo[0]);
     }
 
+    /*
+     * Function to get the Services of an engine searched by ID
+     */
     public Service[] getServicesMappedToEngine(EngineInfo eng) throws SQLException{
         ResultSet rs;
         synchronized(selectEngineServices){
@@ -114,7 +126,9 @@ public class ServiceRepository {
         rs.close();
         return sl.toArray(new Service[0]);
     }
-
+    /*
+     * Function to get the Engines that provide a specific service searched by ID
+     */
     public EngineInfo[] getEnginesMappedToService(Service ser) throws SQLException{
         ResultSet rs;
         synchronized(selectServiceEngines){
@@ -132,40 +146,96 @@ public class ServiceRepository {
         rs.close();
         return el.toArray(new EngineInfo[0]);
     }
-    
-    public int  setNewService(Service ser) throws SQLException{
-        Boolean result;
+    /*
+     * Function to add a new type of Service into list
+     */
+    public boolean  addNewService(Service ser) throws SQLException{
+        boolean result;
         synchronized(addService){
             //addService.setInt(1, ser.getId());
             addService.setString(1, ser.getName());
             result = addService.execute();
-            if( result == true) return 1;
-            else return 0;
+            return result;
         }
     }
-
-    public int setNewEngine(EngineInfo eng) throws SQLException{
-        Boolean result;
+    /*
+     * Function to add a new instance of Engine into list
+     */
+    public boolean addNewEngine(EngineInfo eng) throws SQLException{
+        boolean result;
         synchronized(addEngine){
             addEngine.setString(1,eng.getName());
             addEngine.setString(2,eng.getHost());
             addEngine.setInt(3, eng.getPort());
             result = addEngine.execute();
-            if(result == true) return 1;
-            else return 0;
+            return result;
         }
     }
-    public int delNewService(Service ser) throws SQLException{
-        Boolean result;
-        synchronized(delServiceEngine){
-            delServiceEngine.setInt(1, ser.getId());
-            result  = delServiceEngine.execute();
+    /*
+     * Function for adding a new relation between a service and an engine
+     */
+     public boolean addRelServiceEngine(int service_id, int engine_id) throws SQLException
+     {
+         boolean result;
+         synchronized(addServiceEngine){
+             addServiceEngine.setInt(1,service_id);
+             addServiceEngine.setInt(2, engine_id);
+             result = addServiceEngine.execute();
+             return result;
+         }
+     }
+    /*
+     * Function that delete  a service from the system thinking also to all dependences
+     * with engines
+     */
+    public boolean delService(Service ser) throws SQLException{
+            boolean result;
+            result = delServiceEngine(ser);
+            if(!result) return result;
+            synchronized(delService){
+                delService.setInt(1, ser.getId());
+                result = delService.execute();
+                return result;
+            }
         }
-        synchronized(delService){
-            delService.setInt(1, ser.getId())
+
+    /*
+     * Function that delete a relation between a service and an engine
+     * by ServiceID
+     */
+        public boolean delServiceEngine(Service ser) throws SQLException{
+            boolean result;
+            synchronized(delServiceEngine){
+                delServiceEngine.setInt(1,ser.getId());
+                result = delServiceEngine.execute();
+                return result;
+             }
         }
-    }
-
-
+        /*
+         * Function that delete an engine from the system thinking also to all dependences
+         * with engines
+         */
+        public boolean delEngine(EngineInfo eng) throws SQLException{
+            boolean result;
+            result = delEngineService(eng);
+            if (!result ) return result;
+            synchronized(delEngine){
+                delEngine.setInt(1,eng.getId());
+                result = delEngine.execute();
+                return result;
+            }
+        }
+        /*
+         * Function that delete a relation between a service and an engine
+         * by EngineID
+         */
+        public boolean delEngineService(EngineInfo eng) throws SQLException{
+            boolean result;
+            synchronized(delEngineService){
+                delEngineService.setInt(1,eng.getId());
+                result = delEngineService.execute();
+                return result;
+            }
+        }
 
 }
