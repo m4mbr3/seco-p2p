@@ -25,6 +25,7 @@ public class ServiceRepository {
     private Connection conn;
     private PreparedStatement selectServicesList;
     private PreparedStatement selectEnginesList;
+    private PreparedStatement selectRelationList;
     private PreparedStatement selectEngineServices;
     private PreparedStatement selectServiceEngines;
     private PreparedStatement addService;
@@ -34,6 +35,7 @@ public class ServiceRepository {
     private PreparedStatement delServiceEngine;
     private PreparedStatement delEngine;
     private PreparedStatement delEngineService;
+
     /*
      * Default constructor, tries to connect to "ServiceRepository.sqlite" 
      * in the same directory (if it exists!)
@@ -54,6 +56,8 @@ public class ServiceRepository {
                 "SELECT * FROM services");
         selectEnginesList = conn.prepareStatement(
                 "SELECT * FROM engines");
+        selectRelationList = conn.prepareStatement(
+                "SELECT * FROM service_map");
         selectEngineServices = conn.prepareStatement(
                 "SELECT * FROM services_to_engines WHERE engine_id = ?");
         selectServiceEngines = conn.prepareStatement(
@@ -109,7 +113,20 @@ public class ServiceRepository {
         rs.close();
         return sl.toArray(new EngineInfo[0]);
     }
-
+    public  Relation[] getRelationList() throws SQLException{
+        ResultSet rs;
+        synchronized(selectRelationList){
+            rs = selectRelationList.executeQuery();
+        }
+        List<Relation> sl = new ArrayList<Relation>();
+        while(rs.next()){
+            sl.add(new Relation(
+                    rs.getInt("service_id"),
+                    rs.getInt("engine_id") ) );
+        }
+        rs.close();
+        return sl.toArray(new Relation[0]);
+    }
     /*
      * Function to get the Services of an engine searched by ID
      */
@@ -177,12 +194,25 @@ public class ServiceRepository {
      public boolean addRelServiceEngine(int service_id, int engine_id) throws SQLException
      {
          boolean result;
-         synchronized(addServiceEngine){
-             addServiceEngine.setInt(1,service_id);
-             addServiceEngine.setInt(2, engine_id);
-             result = addServiceEngine.execute();
-             return result;
+         int service_exist =0;
+         int engine_exist = 0;
+
+         EngineInfo[] e = getEnginesList();
+         Service[] s = getServicesList();
+         for(EngineInfo es : e)
+            if( es.getId() == engine_id)  engine_exist = 1;
+         for(Service se : s)
+             if(se.getId() == service_id) service_exist = 1;
+         if ( (engine_exist ==1) && (service_exist == 1))
+         {
+             synchronized(addServiceEngine){
+                 addServiceEngine.setInt(1,service_id);
+                 addServiceEngine.setInt(2,engine_id);
+                 result = addServiceEngine.execute();
+                 return result;
+             }
          }
+         else return false;
      }
     /*
      * Function that delete  a service from the system thinking also to all dependences
