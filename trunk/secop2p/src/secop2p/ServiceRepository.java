@@ -191,8 +191,8 @@ public class ServiceRepository {
     public boolean delService(Service ser) throws SQLException{
             boolean result;
             result = delServiceEngine(ser);
-            if(!result) return result;
             synchronized(delService){
+                System.out.println("L'id da eliminare è"+ser.getId());
                 delService.setInt(1, ser.getId());
                 result = delService.execute();
                 return result;
@@ -218,7 +218,6 @@ public class ServiceRepository {
         public boolean delEngine(EngineInfo eng) throws SQLException{
             boolean result;
             result = delEngineService(eng);
-            if (!result ) return result;
             synchronized(delEngine){
                 delEngine.setInt(1,eng.getId());
                 result = delEngine.execute();
