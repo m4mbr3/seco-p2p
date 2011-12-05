@@ -1,4 +1,4 @@
-package javaapplication1;
+package secop2p;
 
 /**
  * @author eros
@@ -17,6 +17,11 @@ public class EngineInfo {
         this.name=name;
         this.host=host;
         this.port=port;
+    }
+    public EngineInfo(String name, String host, int port){
+        this.name = name;
+        this.host = host;
+        this.port = port;
     }
 
     public String getName(){

@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package javaapplication1;
+package secop2p;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -27,7 +27,12 @@ public class ServiceRepository {
     private PreparedStatement selectEnginesList;
     private PreparedStatement selectEngineServices;
     private PreparedStatement selectServiceEngines;
-
+    private PreparedStatement addService;
+    private PreparedStatement addEngine;
+    private PreparedStatement delService;
+    private PreparedStatement delServiceEngine;
+    private PreparedStatement delEngine;
+    private PreparedStatement delEngineService;
     /*
      * Default constructor, tries to connect to "ServiceRepository.sqlite" 
      * in the same directory (if it exists!)
@@ -52,7 +57,19 @@ public class ServiceRepository {
                 "SELECT * FROM services_to_engines WHERE engine_id = ?");
         selectServiceEngines = conn.prepareStatement(
                 "SELECT * FROM services_to_engines WHERE service_id = ?");
-    }
+        addService = conn.prepareStatement(
+                "INSERT OR ROLLBACK INTO services (name) VALUES (? ) ");
+        addEngine = conn.prepareStatement(
+                "INSERT OR ROLLBACK INTO engines (name, host, port) VALUES (?,?,?)" );
+        delService = conn.prepareStatement(
+                "DELETE FROM services  WHERE id = ?");
+        delServiceEngine = conn.prepareStatement(
+                "DELETE FROM services_to_engines WHERE service_id = ?");
+        delEngine = conn.prepareStatement(
+                "DELETE FROM engines  WHERE id = ?");
+        delEngineService = conn.prepareStatement(
+                "DELETE FROM service_to_engines WHERE engine_id = ?");
+       }
 
     public Service[] getServicesList() throws SQLException{
         ResultSet rs;
@@ -115,6 +132,40 @@ public class ServiceRepository {
         rs.close();
         return el.toArray(new EngineInfo[0]);
     }
+    
+    public int  setNewService(Service ser) throws SQLException{
+        Boolean result;
+        synchronized(addService){
+            //addService.setInt(1, ser.getId());
+            addService.setString(1, ser.getName());
+            result = addService.execute();
+            if( result == true) return 1;
+            else return 0;
+        }
+    }
+
+    public int setNewEngine(EngineInfo eng) throws SQLException{
+        Boolean result;
+        synchronized(addEngine){
+            addEngine.setString(1,eng.getName());
+            addEngine.setString(2,eng.getHost());
+            addEngine.setInt(3, eng.getPort());
+            result = addEngine.execute();
+            if(result == true) return 1;
+            else return 0;
+        }
+    }
+    public int delNewService(Service ser) throws SQLException{
+        Boolean result;
+        synchronized(delServiceEngine){
+            delServiceEngine.setInt(1, ser.getId());
+            result  = delServiceEngine.execute();
+        }
+        synchronized(delService){
+            delService.setInt(1, ser.getId())
+        }
+    }
+
 
 
 }
