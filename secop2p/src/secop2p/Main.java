@@ -24,6 +24,12 @@ public class Main {
         EngineInfo[] el = sr.getEnginesList();
         for(EngineInfo e : el)
             System.out.println( e.getName() );
+        sl = sr.getServicesMappedToEngine(el[0]);
+        for(Service s : sl)
+            System.out.println( s.getName() );
+        el = sr.getEnginesMappedToService(sl[0]);
+        for(EngineInfo e : el)
+            System.out.println( e.getName() );
     }
 
 }
