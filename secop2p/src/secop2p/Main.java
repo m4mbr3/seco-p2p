@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package javaapplication1;
+package secop2p;
 
 import java.sql.SQLException;
 
@@ -18,6 +18,8 @@ public class Main {
      */
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
         ServiceRepository sr = new ServiceRepository();
+        int l = sr.setNewService(new Service("ciao"));
+        int p = sr.setNewEngine(new EngineInfo("prova", "192.168.1.1",90));
         Service[] sl = sr.getServicesList();
         for(Service s : sl)
             System.out.println( s.getName() );

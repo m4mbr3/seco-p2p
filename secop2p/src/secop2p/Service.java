@@ -1,4 +1,4 @@
-package javaapplication1;
+package secop2p;
 
 /**
  * @author eros
@@ -13,6 +13,9 @@ public class Service {
      */
     public Service(int id, String name){
         this.id = id;
+        this.name = name;
+    }
+    public Service(String name){
         this.name = name;
     }
 
