@@ -23,6 +23,25 @@ public class EngineInfo {
         this.host = host;
         this.port = port;
     }
+    public EngineInfo(){
+        
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
 
     public String getName(){
         return name;
