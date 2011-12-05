@@ -12,6 +12,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  *
@@ -23,6 +25,8 @@ public class ServiceRepository {
     private Connection conn;
     private PreparedStatement selectServicesList;
     private PreparedStatement selectEnginesList;
+    private PreparedStatement selectEngineServices;
+    private PreparedStatement selectServiceEngines;
 
     /*
      * Default constructor, tries to connect to "ServiceRepository.sqlite" 
@@ -40,33 +44,24 @@ public class ServiceRepository {
     public ServiceRepository(String db_conn) throws SQLException, ClassNotFoundException{
         Class.forName("org.sqlite.JDBC");
         conn = DriverManager.getConnection( db_conn );
-        selectServicesList = conn.prepareStatement("SELECT name FROM services");
-        selectEnginesList = conn.prepareStatement("SELECT name, host, port FROM engines");
+        selectServicesList = conn.prepareStatement(
+                "SELECT * FROM services");
+        selectEnginesList = conn.prepareStatement(
+                "SELECT * FROM engines");
+        selectEngineServices = conn.prepareStatement(
+                "SELECT * FROM services_to_engines WHERE engine_id = ?");
+        selectServiceEngines = conn.prepareStatement(
+                "SELECT * FROM services_to_engines WHERE service_id = ?");
     }
 
     public Service[] getServicesList() throws SQLException{
         ResultSet rs;
-        //synchronized it over the statement to prevent multiple queries
         synchronized(selectServicesList){
             rs = selectServicesList.executeQuery();
         }
-        //prevent waste of memory checking the size of the rs
-        int len = -1;
-        try{
-            rs.last();
-            len = rs.getRow();
-            rs.first();
-        }catch(Exception e){
-            //Do nothing
-        }
-        List<Service> sl;
-        if(len!=-1)
-            sl = new ArrayList<Service>(len);
-        else
-            sl = new ArrayList<Service>();
-        //populate the list
+        List<Service> sl = new ArrayList<Service>();
         while(rs.next()){
-            sl.add( new Service( rs.getString(1) ) );
+            sl.add( new Service( rs.getInt("id"), rs.getString("name") ) );
         }
         rs.close();
         return sl.toArray(new Service[0]);
@@ -74,30 +69,51 @@ public class ServiceRepository {
 
     public EngineInfo[] getEnginesList() throws SQLException{
         ResultSet rs;
-        //synchronized it over the statement to prevent multiple queries
         synchronized(selectEnginesList){
             rs = selectEnginesList.executeQuery();
         }
-        //prevent waste of memory checking the size of the rs
-        int len = -1;
-        try{
-            rs.last();
-            len = rs.getRow();
-            rs.first();
-        }catch(Exception e){
-            //Do nothing
-        }
-        List<EngineInfo> sl;
-        if(len!=-1)
-            sl = new ArrayList<EngineInfo>(len);
-        else
-            sl = new ArrayList<EngineInfo>();
-        //populate the list
+        List<EngineInfo> sl = new ArrayList<EngineInfo>();
         while(rs.next()){
-            sl.add( new EngineInfo( rs.getString(1), rs.getString(2), rs.getInt(3) ) );
+            sl.add( new EngineInfo(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getString("host"),
+                    rs.getInt("host") ) );
         }
         rs.close();
         return sl.toArray(new EngineInfo[0]);
+    }
+
+    public Service[] getServicesMappedToEngine(EngineInfo eng) throws SQLException{
+        ResultSet rs;
+        synchronized(selectEngineServices){
+            selectEngineServices.setInt(1, eng.getId());
+            rs = selectEngineServices.executeQuery();
+        }
+        ArrayList<Service> sl = new ArrayList<Service>();
+        while(rs.next()){
+            sl.add( new Service( rs.getInt("service_id"), rs.getString("service_name") ) );
+        }
+        rs.close();
+        return sl.toArray(new Service[0]);
+    }
+
+    public EngineInfo[] getEnginesMappedToService(Service ser) throws SQLException{
+        ResultSet rs;
+        synchronized(selectServiceEngines){
+            selectServiceEngines.setInt(1, ser.getId());
+            rs = selectServiceEngines.executeQuery();
+        }
+        ArrayList<EngineInfo> el = new ArrayList<EngineInfo>();
+        while(rs.next()){
+            el.add( new EngineInfo(
+                    rs.getInt("engine_id"),
+                    rs.getString("engine_name"),
+                    rs.getString("host"),
+                    rs.getInt("port")) );
+        }
+        rs.close();
+        return el.toArray(new EngineInfo[0]);
     }
 
 
