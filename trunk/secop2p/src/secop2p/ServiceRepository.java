@@ -35,6 +35,8 @@ public class ServiceRepository {
     private PreparedStatement delServiceEngine;
     private PreparedStatement delEngine;
     private PreparedStatement delEngineService;
+    private PreparedStatement selectEngineById;
+    private PreparedStatement selectServiceById;
 
     /*
      * Default constructor, tries to connect to "ServiceRepository.sqlite" 
@@ -76,6 +78,9 @@ public class ServiceRepository {
                 "DELETE FROM engines  WHERE id = ?");
         delEngineService = conn.prepareStatement(
                 "DELETE FROM service_map WHERE engine_id = ?");
+        //Nguyen
+        selectEngineById = conn.prepareStatement("SELECT * FROM engines WHERE engine_id = ?");
+        selectServiceById = conn.prepareStatement("SELECT * FROM services WHERE service_id = ?");
        }
 
     /*
@@ -108,11 +113,12 @@ public class ServiceRepository {
                     rs.getInt("id"),
                     rs.getString("name"),
                     rs.getString("host"),
-                    rs.getInt("host") ) );
+                    rs.getInt("port") ) );
         }
         rs.close();
         return sl.toArray(new EngineInfo[0]);
     }
+    
     public  Relation[] getRelationList() throws SQLException{
         ResultSet rs;
         synchronized(selectRelationList){
@@ -233,7 +239,7 @@ public class ServiceRepository {
      * Function that delete a relation between a service and an engine
      * by ServiceID
      */
-        public boolean delServiceEngine(Service ser) throws SQLException{
+    public boolean delServiceEngine(Service ser) throws SQLException{
             boolean result;
             synchronized(delServiceEngine){
                 delServiceEngine.setInt(1,ser.getId());
@@ -245,7 +251,7 @@ public class ServiceRepository {
          * Function that delete an engine from the system thinking also to all dependences
          * with engines
          */
-        public boolean delEngine(EngineInfo eng) throws SQLException{
+    public boolean delEngine(EngineInfo eng) throws SQLException{
             boolean result;
             result = delEngineService(eng);
             synchronized(delEngine){
@@ -258,7 +264,7 @@ public class ServiceRepository {
          * Function that delete a relation between a service and an engine
          * by EngineID
          */
-        public boolean delEngineService(EngineInfo eng) throws SQLException{
+    public boolean delEngineService(EngineInfo eng) throws SQLException{
             boolean result;
             synchronized(delEngineService){
                 delEngineService.setInt(1,eng.getId());
@@ -267,4 +273,50 @@ public class ServiceRepository {
             }
         }
 
+        /*Nguyen Ho
+         Get engine information bases on engineId
+         */
+    public EngineInfo getEngineById(int engineId) throws SQLException
+    {
+        ResultSet resultSet;
+        EngineInfo engineInfo = null;
+        selectEngineById.setInt(1, engineId);
+        synchronized(selectEngineById){
+            resultSet = selectEngineById.executeQuery();
+        }
+        while(resultSet.next())
+        {
+            engineInfo = new EngineInfo(
+                resultSet.getInt("id"),
+                resultSet.getString("name"),
+                resultSet.getString("host"),
+                resultSet.getInt("port")) ;
+        }
+        resultSet.close();
+        return engineInfo;
+    }   
+    
+    /*Nguyen Ho
+     Get service bases on serviceId
+     */
+    
+    public Service getServiceById(int serviceId) throws SQLException
+    {
+        ResultSet resultSet;
+        Service service = null;
+        selectServiceById.setInt(1, serviceId);
+        synchronized(selectServiceById)
+        {
+            resultSet=selectServiceById.executeQuery();
+        }
+        while(resultSet.next())
+        {
+            service = new Service(resultSet.getInt("id"), resultSet.getString("name"));
+        }
+        resultSet.close();
+        return  service;
+    }
+    
+    /*NguyenHo
+     */
 }
