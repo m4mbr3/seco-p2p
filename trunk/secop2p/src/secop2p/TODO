@@ -1,7 +1,15 @@
-below here will be all things that we have to do...and if someone wants work on one of this points write near for example ( -> Andrea) and delete it if done...
+below here will be all things that we have to do...and if someone wants work on
+one of this points write near for example ( -> Andrea) and delete it if done...
 
 1) Fix with try/catch Double immision of a Relation
-2) Check whether service is local or not  -> Nguyen
-3) Implement Remote Invoker -> Nguyen
-4) Sending "I am alive" message -> Andrea
-5) TODO: Register new engine/ service 
+   -> as trivial as "insert or replace ..."
+      (see http://www.sqlite.org/lang_insert.html)
+
+-2) Check whether service is local or not  -> Nguyen
+
+-3) Implement Remote Invoker -> Nguyen
+
+-4) Sending "I am alive" message -> Andrea
+
+-5) TODO: Register new engine/ service 
+
