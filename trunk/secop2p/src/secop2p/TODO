@@ -5,11 +5,13 @@ one of this points write near for example ( -> Andrea) and delete it if done...
    -> as trivial as "insert or replace ..."
       (see http://www.sqlite.org/lang_insert.html)
 
--2) Check whether service is local or not  -> Nguyen
+-2) Check whether service is local or not  -> Nguyen - DONE
 
 -3) Implement Remote Invoker -> Nguyen
 
 -4) Sending "I am alive" message -> Andrea
 
--5) TODO: Register new engine/ service 
+-5) TODO: + Register new engine/ service 
+          + Request to ServiceRepository to get a local copy each hour 
+
 
