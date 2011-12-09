@@ -15,6 +15,8 @@ import java.net.UnknownHostException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -26,20 +28,41 @@ import java.util.logging.Logger;
  */
 public class AliveTest {
 
+    public static String generateMessage(){
+        return "Testing I'm alive message with generated message at time "+System.currentTimeMillis();
+    }
+
+    public static void print(String msg){
+        System.out.println("1 - Received: "+msg);
+    }
+
+    public static void print2(String msg){
+        System.out.println("2 - Received: "+msg);
+    }
+
     public static void main(String[] args) throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
         int port = 8888;
         int interval = 2000;
-        Method callback = System.out.getClass().getMethod("println", String.class);
-        Object callee = System.out;
+        Method callback = AliveTest.class.getMethod("print", String.class);
+        Object callee = AliveTest.class;
         Listener l = new Listener( port, callback, callee);
         l.start();
-        ArrayList<EngineInfo> list = new ArrayList<EngineInfo>();
+        List<EngineInfo> list = new ArrayList<EngineInfo>();
+        list = Collections.synchronizedList( list );
         list.add( new EngineInfo(0, "TestEngine", "127.0.0.1", port) );
-        Sender s = new Sender(list);
+        Method cb = AliveTest.class.getMethod("generateMessage");
+        Object cl = AliveTest.class;
+        Sender s = new Sender(list, cb, cl);
         s.start(interval);
+        System.in.read();
+        Method callback2 = AliveTest.class.getMethod("print2", String.class);
+        Listener l2 = new Listener( port+1, callback2, callee);
+        l2.start();
+        list.add( new EngineInfo(0, "TestEngine", "127.0.0.1", port+1) );
         System.in.read();
         s.stop();
         l.close();
+        l2.close();
     }
 
 }
@@ -117,12 +140,16 @@ class Sender {
 
     Timer t;
     MyTask mt;
-    ArrayList<EngineInfo> targets;
+    List<EngineInfo> targets;
+    Method callback;
+    Object callee;
 
-    public Sender(ArrayList<EngineInfo> targets){
+    public Sender(List<EngineInfo> targets, Method callback, Object callee){
         t = new Timer();
         mt = new MyTask();
         this.targets = targets;
+        this.callback = callback;
+        this.callee = callee;
     }
 
     public void start(int interval){
@@ -133,10 +160,20 @@ class Sender {
 
         @Override
         public void run() {
+            String msg = "I'm alive";
+            try {
+                msg = (String) callback.invoke(callee);
+            } catch (IllegalAccessException ex) {
+                Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalArgumentException ex) {
+                Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InvocationTargetException ex) {
+                Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
+            }
             for(EngineInfo e : targets){
                 try {
                     Socket s = new Socket(e.getHost(), e.getPort());
-                    s.getOutputStream().write("I'm alive".getBytes());
+                    s.getOutputStream().write(msg.getBytes());
                     s.close();
                 } catch (UnknownHostException ex) {
                     Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
