@@ -12,11 +12,13 @@ import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -28,41 +30,64 @@ import java.util.logging.Logger;
  */
 public class AliveTest {
 
-    public static String generateMessage(){
-        return "Testing I'm alive message with generated message at time "+System.currentTimeMillis();
-    }
-
-    public static void print(String msg){
-        System.out.println("1 - Received: "+msg);
-    }
-
-    public static void print2(String msg){
-        System.out.println("2 - Received: "+msg);
-    }
-
+    @SuppressWarnings("ResultOfObjectAllocationIgnored")
     public static void main(String[] args) throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
-        int port = 8888;
-        int interval = 2000;
-        Method callback = AliveTest.class.getMethod("print", String.class);
-        Object callee = AliveTest.class;
-        Listener l = new Listener( port, callback, callee);
-        l.start();
-        List<EngineInfo> list = new ArrayList<EngineInfo>();
-        list = Collections.synchronizedList( list );
-        list.add( new EngineInfo(0, "TestEngine", "127.0.0.1", port) );
-        Method cb = AliveTest.class.getMethod("generateMessage");
-        Object cl = AliveTest.class;
-        Sender s = new Sender(list, cb, cl);
-        s.start(interval);
-        System.in.read();
-        Method callback2 = AliveTest.class.getMethod("print2", String.class);
-        Listener l2 = new Listener( port+1, callback2, callee);
-        l2.start();
-        list.add( new EngineInfo(0, "TestEngine", "127.0.0.1", port+1) );
-        System.in.read();
-        s.stop();
-        l.close();
-        l2.close();
+        Sender.DEFAULT_INTERVAL = 4000;
+        new AliveEngine();
+        System.out.println("Press any key to create a new test engine");
+        System.out.println("Press CTRL+C to exit");
+        while(true){
+            new AliveEngine();
+            System.in.read();
+        }
+    }
+
+}
+
+class AliveEngine extends EngineInfo {
+    private static Set<AliveEngine> aliveEngines =
+            Collections.synchronizedSet(
+                new HashSet<AliveEngine>()
+            );
+    private static final int start_port = 8000;
+    private Set<EngineInfo> others;
+
+    public AliveEngine(){
+        this("Engine "+(aliveEngines.size()+1), "127.0.0.1", start_port+aliveEngines.size());
+    }
+
+    @SuppressWarnings({"ResultOfObjectAllocationIgnored", "LeakingThisInConstructor"})
+    public AliveEngine(String name, String host, int port){
+        super(name, host, port);
+        System.out.println("creating engine "+this.getName());
+        try {
+            aliveEngines.add(this);
+            Method l_cb = this.getClass().getMethod("receivedMessage", String.class);
+            new Listener(port, l_cb, this);
+            others = new HashSet<EngineInfo>(aliveEngines);
+            others = Collections.synchronizedSet(others);
+            others.remove(this);
+            Method s_cb = this.getClass().getMethod("generateMessage");
+            new Sender(others, s_cb, this);
+            for(AliveEngine ae : aliveEngines){
+                if( ae != this)
+                    ae.others.add(this);
+            }
+        } catch (NoSuchMethodException ex) {
+            Logger.getLogger(AliveEngine.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SecurityException ex) {
+            Logger.getLogger(AliveEngine.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public String generateMessage(){
+        return this.getName()+" - I'm alive at "+(int)(System.currentTimeMillis()/1000);
+    }
+
+    public void receivedMessage(String msg){
+        System.out.println(
+            this.getName() + " - Received: " + msg
+        );
     }
 
 }
@@ -75,21 +100,46 @@ class Listener extends Thread {
     private Object callee;
 
     public Listener(int port, Method callback, Object callee){
+        this(port, callback, callee, true);
+    }
+
+    public Listener(int port, Method callback, Object callee, boolean autostart){
         this.port = port;
         this.callback = callback;
         this.callee = callee;
+        if(autostart){
+            new Timer().schedule(
+                new TimerTask(){
+                    @Override
+                    public void run() {
+                        Listener.this.start();
+                    }
+                }, 0
+            );
+        }
     }
 
     @Override
     public void run(){
         try{
+            Runtime.getRuntime().addShutdownHook(new Thread(){
+                @Override
+                public void run(){
+                    Listener.this.stopped = true;
+                }
+            });
+            Selector selector = Selector.open();
             ServerSocketChannel ssc = ServerSocketChannel.open();
             ssc.socket().bind(new InetSocketAddress(port));
             ssc.configureBlocking(false);
+            ssc.register(selector, ssc.validOps());
             while(!stopped){
-                SocketChannel s = ssc.accept();
-                if(s != null){
-                    new RequestHandler(s).start();
+                selector.select();
+                for(SelectionKey sk : selector.selectedKeys()){
+                    SocketChannel s = ssc.accept();
+                    if(s != null){
+                        new RequestHandler(s).start();
+                    }
                 }
             }
             ssc.close();
@@ -138,22 +188,40 @@ class Listener extends Thread {
 
 class Sender {
 
-    Timer t;
-    MyTask mt;
-    List<EngineInfo> targets;
-    Method callback;
-    Object callee;
+    public static int DEFAULT_INTERVAL = -1;
+    private Timer t;
+    private MyTask mt;
+    private Set<EngineInfo> targets;
+    private Method callback;
+    private Object callee;
 
-    public Sender(List<EngineInfo> targets, Method callback, Object callee){
+    public Sender(Set<EngineInfo> targets, Method callback, Object callee){
+        this(targets, callback, callee, DEFAULT_INTERVAL);
+    }
+
+    public Sender(Set<EngineInfo> targets, Method callback, Object callee, int interval){
         t = new Timer();
         mt = new MyTask();
         this.targets = targets;
         this.callback = callback;
         this.callee = callee;
+        if(interval >= 0){
+            this.privateStart(interval);
+        }
+    }
+
+    private void privateStart(int interval){
+        Runtime.getRuntime().addShutdownHook(new Thread(){
+            @Override
+            public void run(){
+                Sender.this.stop();
+            }
+        });
+        t.scheduleAtFixedRate(mt, 100, interval);
     }
 
     public void start(int interval){
-        t.scheduleAtFixedRate(mt, 100, interval);
+        this.privateStart(interval);
     }
 
     class MyTask extends TimerTask {
