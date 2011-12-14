@@ -1,11 +1,13 @@
 package secop2p;
 
+import java.io.Serializable;
+
 /**
  * @author eros
  *
  * Dummy class that represents an engine
  */
-public class EngineInfo {
+public class EngineInfo implements Serializable {
 
     private int id;
     private String name;
