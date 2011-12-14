@@ -198,8 +198,7 @@ public class ServiceRepository {
     /*
      * Function for adding a new relation between a service and an engine
      */
-     public boolean addRelServiceEngine(Service s, EngineInfo e) throws SQLException
-     {
+     public boolean addRelServiceEngine(Service s, EngineInfo e) throws SQLException {
          boolean result;
          synchronized(conn){
              addRelation.setInt(1,s.getId());
@@ -264,7 +263,15 @@ public class ServiceRepository {
         }
     }
 
-    public boolean delRelSeviceEngine()
+    public boolean delRelSeviceEngine(Service s, EngineInfo e) throws SQLException{
+         boolean result;
+         synchronized(conn){
+             delRelation.setInt(1,s.getId());
+             delRelation.setInt(2,e.getId());
+             result = delRelation.execute();
+             return result;
+         }
+    }
 
     /*Nguyen Ho
      Get engine information bases on engineId
