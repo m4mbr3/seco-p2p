@@ -12,8 +12,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  *
@@ -22,21 +20,22 @@ import java.util.TreeMap;
 public class ServiceRepository {
 
     private final static String DB_CONN = "jdbc:sqlite:ServiceRepository.sqlite";
-    private Connection conn;
-    private PreparedStatement selectServicesList;
-    private PreparedStatement selectEnginesList;
-    private PreparedStatement selectRelationList;
-    private PreparedStatement selectEngineServices;
-    private PreparedStatement selectServiceEngines;
-    private PreparedStatement addService;
-    private PreparedStatement addEngine;
-    private PreparedStatement addServiceEngine;
-    private PreparedStatement delService;
-    private PreparedStatement delServiceEngine;
-    private PreparedStatement delEngine;
-    private PreparedStatement delEngineService;
-    private PreparedStatement selectEngineById;
-    private PreparedStatement selectServiceById;
+    private final Connection conn;
+    static private PreparedStatement selectServicesList;
+    static private PreparedStatement selectEnginesList;
+    static private PreparedStatement selectRelationList;
+    static private PreparedStatement selectEngineServices;
+    static private PreparedStatement selectServiceEngines;
+    static private PreparedStatement addService;
+    static private PreparedStatement addEngine;
+    static private PreparedStatement addRelation;
+    static private PreparedStatement delService;
+    static private PreparedStatement delServiceEngines;
+    static private PreparedStatement delEngine;
+    static private PreparedStatement delEngineServices;
+    static private PreparedStatement delRelation;
+    static private PreparedStatement selectEngineById;
+    static private PreparedStatement selectServiceById;
 
     /*
      * Default constructor, tries to connect to "ServiceRepository.sqlite" 
@@ -68,16 +67,18 @@ public class ServiceRepository {
                 "INSERT OR ROLLBACK INTO services (name) VALUES (? ) ");
         addEngine = conn.prepareStatement(
                 "INSERT OR ROLLBACK INTO engines (name, host, port) VALUES (?,?,?)" );
-        addServiceEngine = conn.prepareStatement(
+        addRelation = conn.prepareStatement(
                 "INSERT OR ROLLBACK INTO service_map (service_id,engine_id) VALUES (?,?)");
         delService = conn.prepareStatement(
                 "DELETE FROM services  WHERE id = ?");
-        delServiceEngine = conn.prepareStatement(
+        delServiceEngines = conn.prepareStatement(
                 "DELETE FROM service_map WHERE service_id = ?");
         delEngine = conn.prepareStatement(
                 "DELETE FROM engines  WHERE id = ?");
-        delEngineService = conn.prepareStatement(
+        delEngineServices = conn.prepareStatement(
                 "DELETE FROM service_map WHERE engine_id = ?");
+        delRelation = conn.prepareStatement(
+                "DELETE FROM service_map WHERE engine_id = ? AND service_id = ?");
         //Nguyen
         selectEngineById = conn.prepareStatement("SELECT * FROM engines WHERE engine_id = ?");
         selectServiceById = conn.prepareStatement("SELECT * FROM services WHERE service_id = ?");
@@ -88,7 +89,7 @@ public class ServiceRepository {
      */
     public Service[] getServicesList() throws SQLException{
         ResultSet rs;
-        synchronized(selectServicesList){
+        synchronized(conn){
             rs = selectServicesList.executeQuery();
         }
         List<Service> sl = new ArrayList<Service>();
@@ -104,7 +105,7 @@ public class ServiceRepository {
      */
     public EngineInfo[] getEnginesList() throws SQLException{
         ResultSet rs;
-        synchronized(selectEnginesList){
+        synchronized(conn){
             rs = selectEnginesList.executeQuery();
         }
         List<EngineInfo> sl = new ArrayList<EngineInfo>();
@@ -121,7 +122,7 @@ public class ServiceRepository {
     
     public  Relation[] getRelationList() throws SQLException{
         ResultSet rs;
-        synchronized(selectRelationList){
+        synchronized(conn){
             rs = selectRelationList.executeQuery();
         }
         List<Relation> sl = new ArrayList<Relation>();
@@ -138,7 +139,7 @@ public class ServiceRepository {
      */
     public Service[] getServicesMappedToEngine(EngineInfo eng) throws SQLException{
         ResultSet rs;
-        synchronized(selectEngineServices){
+        synchronized(conn){
             selectEngineServices.setInt(1, eng.getId());
             rs = selectEngineServices.executeQuery();
         }
@@ -154,7 +155,7 @@ public class ServiceRepository {
      */
     public EngineInfo[] getEnginesMappedToService(Service ser) throws SQLException{
         ResultSet rs;
-        synchronized(selectServiceEngines){
+        synchronized(conn){
             selectServiceEngines.setInt(1, ser.getId());
             rs = selectServiceEngines.executeQuery();
         }
@@ -174,7 +175,7 @@ public class ServiceRepository {
      */
     public boolean  addNewService(Service ser) throws SQLException{
         boolean result;
-        synchronized(addService){
+        synchronized(conn){
             //addService.setInt(1, ser.getId());
             addService.setString(1, ser.getName());
             result = addService.execute();
@@ -186,7 +187,7 @@ public class ServiceRepository {
      */
     public boolean addNewEngine(EngineInfo eng) throws SQLException{
         boolean result;
-        synchronized(addEngine){
+        synchronized(conn){
             addEngine.setString(1,eng.getName());
             addEngine.setString(2,eng.getHost());
             addEngine.setInt(3, eng.getPort());
@@ -197,37 +198,25 @@ public class ServiceRepository {
     /*
      * Function for adding a new relation between a service and an engine
      */
-     public boolean addRelServiceEngine(int service_id, int engine_id) throws SQLException
+     public boolean addRelServiceEngine(Service s, EngineInfo e) throws SQLException
      {
          boolean result;
-         int service_exist =0;
-         int engine_exist = 0;
-
-         EngineInfo[] e = getEnginesList();
-         Service[] s = getServicesList();
-         for(EngineInfo es : e)
-            if( es.getId() == engine_id)  engine_exist = 1;
-         for(Service se : s)
-             if(se.getId() == service_id) service_exist = 1;
-         if ( (engine_exist ==1) && (service_exist == 1))
-         {
-             synchronized(addServiceEngine){
-                 addServiceEngine.setInt(1,service_id);
-                 addServiceEngine.setInt(2,engine_id);
-                 result = addServiceEngine.execute();
-                 return result;
-             }
+         synchronized(conn){
+             addRelation.setInt(1,s.getId());
+             addRelation.setInt(2,e.getId());
+             result = addRelation.execute();
+             return result;
          }
-         else return false;
      }
+
     /*
      * Function that delete  a service from the system thinking also to all dependences
      * with engines
      */
     public boolean delService(Service ser) throws SQLException{
             boolean result;
-            result = delServiceEngine(ser);
-            synchronized(delService){
+            result = delServiceEngines(ser);
+            synchronized(conn){
                 System.out.println("L'id da eliminare è"+ser.getId());
                 delService.setInt(1, ser.getId());
                 result = delService.execute();
@@ -239,49 +228,52 @@ public class ServiceRepository {
      * Function that delete a relation between a service and an engine
      * by ServiceID
      */
-    public boolean delServiceEngine(Service ser) throws SQLException{
-            boolean result;
-            synchronized(delServiceEngine){
-                delServiceEngine.setInt(1,ser.getId());
-                result = delServiceEngine.execute();
-                return result;
-             }
-        }
-        /*
-         * Function that delete an engine from the system thinking also to all dependences
-         * with engines
-         */
-    public boolean delEngine(EngineInfo eng) throws SQLException{
-            boolean result;
-            result = delEngineService(eng);
-            synchronized(delEngine){
-                delEngine.setInt(1,eng.getId());
-                result = delEngine.execute();
-                return result;
-            }
-        }
-        /*
-         * Function that delete a relation between a service and an engine
-         * by EngineID
-         */
-    public boolean delEngineService(EngineInfo eng) throws SQLException{
-            boolean result;
-            synchronized(delEngineService){
-                delEngineService.setInt(1,eng.getId());
-                result = delEngineService.execute();
-                return result;
-            }
-        }
+    public boolean delServiceEngines(Service ser) throws SQLException{
+        boolean result;
+        synchronized(conn){
+            delServiceEngines.setInt(1,ser.getId());
+            result = delServiceEngines.execute();
+            return result;
+         }
+    }
 
-        /*Nguyen Ho
-         Get engine information bases on engineId
-         */
-    public EngineInfo getEngineById(int engineId) throws SQLException
-    {
+    /*
+     * Function that delete an engine from the system thinking also to all dependences
+     * with engines
+     */
+    public boolean delEngine(EngineInfo eng) throws SQLException{
+        boolean result;
+        result = delEngineServices(eng);
+        synchronized(conn){
+            delEngine.setInt(1,eng.getId());
+            result = delEngine.execute();
+            return result;
+        }
+    }
+
+    /*
+     * Function that delete a relation between a service and an engine
+     * by EngineID
+     */
+    public boolean delEngineServices(EngineInfo eng) throws SQLException{
+        boolean result;
+        synchronized(conn){
+            delEngineServices.setInt(1,eng.getId());
+            result = delEngineServices.execute();
+            return result;
+        }
+    }
+
+    public boolean delRelSeviceEngine()
+
+    /*Nguyen Ho
+     Get engine information bases on engineId
+     */
+    public EngineInfo getEngineById(int engineId) throws SQLException {
         ResultSet resultSet;
         EngineInfo engineInfo = null;
         selectEngineById.setInt(1, engineId);
-        synchronized(selectEngineById){
+        synchronized(conn){
             resultSet = selectEngineById.executeQuery();
         }
         while(resultSet.next())
@@ -299,14 +291,11 @@ public class ServiceRepository {
     /*Nguyen Ho
      Get service bases on serviceId
      */
-    
-    public Service getServiceById(int serviceId) throws SQLException
-    {
+    public Service getServiceById(int serviceId) throws SQLException{
         ResultSet resultSet;
         Service service = null;
         selectServiceById.setInt(1, serviceId);
-        synchronized(selectServiceById)
-        {
+        synchronized(conn){
             resultSet=selectServiceById.executeQuery();
         }
         while(resultSet.next())
@@ -317,6 +306,4 @@ public class ServiceRepository {
         return  service;
     }
     
-    /*NguyenHo
-     */
 }
