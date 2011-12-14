@@ -12,6 +12,10 @@ one of this points write near for example ( -> Andrea) and delete it if done...
 -4) Sending "I am alive" message -> Andrea
 
 -5) TODO: + Register new engine/ service 
-          + Request to ServiceRepository to get a local copy each hour 
+          + Request to ServiceRepository to get a local copy each hour
 
+-6) Code cleanup for AliveTest: it's growing definetely too much,
+    needs to be splitted into multiple files
+
+-7) Metrics need to be reviewed, it does not make sense to set the own rtt.
 
