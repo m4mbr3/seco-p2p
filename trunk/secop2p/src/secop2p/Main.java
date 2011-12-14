@@ -153,7 +153,7 @@ public class Main {
                  EngineInfo eI = new EngineInfo();
                  System.out.println("Give the ID of the Engine");
                  eI.setId(reader.nextInt());
-                 sr.delEngineService(eI);
+                 sr.delEngineServices(eI);
              }
              else if (choice == 12)
              {
@@ -161,7 +161,7 @@ public class Main {
                  Service sl = new Service();
                  System.out.println("Give the ID of the Service");
                  sl.setId(reader.nextInt());
-                 sr.delServiceEngine(sl);
+                 sr.delServiceEngines(sl);
              }
          }
     }
