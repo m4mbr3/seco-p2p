@@ -16,22 +16,6 @@ import java.util.Scanner;
 
 public class Main {
 
-    public static void printServiceofEngine(EngineInfo el) throws SQLException, ClassNotFoundException {
-        ServiceRepository sr = new ServiceRepository();
-        Service[] sl = sr.getServicesList();
-        sl = sr.getServicesMappedToEngine(el);
-        for(Service s : sl)
-            System.out.println( s.getId()+"-"+s.getName() );
-    }
-
-    public static void printEnginesMappedToService(Service sl) throws SQLException, ClassNotFoundException {
-        ServiceRepository sr = new ServiceRepository();
-        EngineInfo[] el = sr.getEnginesList();
-        el = sr.getEnginesMappedToService(sl);
-         for(EngineInfo e : el)
-            System.out.println( e.getId()+"-"+e.getName() );
-    }
-
     public static void printMenu() {
         System.out.println("**************************SeCo P2P***************************");
         System.out.println("Insert the number of  you choice");
@@ -55,14 +39,12 @@ public class Main {
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
         Scanner reader = new Scanner(System.in);
         int choice=1;
+        ServiceRepository sr = new ServiceRepository();
+        Service s;
+        EngineInfo e;
         while ( choice != 14){
             printMenu();
             choice = reader.nextInt();
-            Service[] sl;
-            Service s;
-            ServiceRepository sr = new ServiceRepository();
-            EngineInfo[] el;
-            EngineInfo e;
             switch(choice){
                 case 1:
                     for(Service srv : sr.getServicesList())
