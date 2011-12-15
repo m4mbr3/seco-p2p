@@ -2,6 +2,9 @@ package secop2p;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -10,7 +13,7 @@ import java.util.logging.Logger;
  *
  * Dummy class that represents an engine
  */
-public class EngineInfo implements Serializable {
+public class EngineInfo implements Serializable, RemoteEngine {
 
     private int id;
     private String name;
@@ -81,6 +84,16 @@ public class EngineInfo implements Serializable {
         }
         sb.append(">");
         return sb.toString();
+    }
+
+    public InetSocketAddress getSocketAddress() {
+        try {
+            InetAddress ia = InetAddress.getByName(host);
+            return new InetSocketAddress(ia, port);
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(EngineInfo.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
     }
 
 }
