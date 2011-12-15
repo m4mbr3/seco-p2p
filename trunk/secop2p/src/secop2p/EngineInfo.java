@@ -1,6 +1,9 @@
 package secop2p;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author eros
@@ -20,13 +23,15 @@ public class EngineInfo implements Serializable {
         this.host=host;
         this.port=port;
     }
+
     public EngineInfo(String name, String host, int port){
         this.name = name;
         this.host = host;
         this.port = port;
     }
+
     public EngineInfo(){
-        
+        //Nothing to check
     }
 
     public void setHost(String host) {
@@ -59,6 +64,23 @@ public class EngineInfo implements Serializable {
 
     public int getPort(){
         return port;
+    }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("<"+this.getClass().getSimpleName());
+        for(Field f : this.getClass().getDeclaredFields()){
+            try {
+                sb.append(" "+f.getName() + "='" + f.get(this) + "'");
+            } catch (IllegalArgumentException ex) {
+                Logger.getLogger(EngineInfo.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalAccessException ex) {
+                Logger.getLogger(EngineInfo.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        sb.append(">");
+        return sb.toString();
     }
 
 }

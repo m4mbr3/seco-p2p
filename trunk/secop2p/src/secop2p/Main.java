@@ -16,30 +16,7 @@ import java.util.Scanner;
 
 public class Main {
 
-    public static void printAllServices() throws SQLException, ClassNotFoundException
-    {
-        ServiceRepository sr = new ServiceRepository();
-        Service[] sl = sr.getServicesList();
-        for(Service s : sl)
-            System.out.println( s.getId()+"-"+s.getName());
-    }
-    public static void printAllEngines() throws SQLException, ClassNotFoundException
-    {
-        ServiceRepository sr = new ServiceRepository();
-        EngineInfo[] el = sr.getEnginesList();
-        for(EngineInfo e : el)
-            System.out.println( e.getId()+"-"+e.getName() );
-    }
-    public static void printAllRelations() throws SQLException, ClassNotFoundException
-    {
-        ServiceRepository sr = new ServiceRepository();
-        Relation[] re = sr.getRelationList();
-        for (Relation r : re)
-            System.out.println(r.getTuple()[0]+"-"+r.getTuple()[1]);
-    }
-
-    public static void printServiceofEngine(EngineInfo el) throws SQLException, ClassNotFoundException
-    {
+    public static void printServiceofEngine(EngineInfo el) throws SQLException, ClassNotFoundException {
         ServiceRepository sr = new ServiceRepository();
         Service[] sl = sr.getServicesList();
         sl = sr.getServicesMappedToEngine(el);
@@ -47,122 +24,123 @@ public class Main {
             System.out.println( s.getId()+"-"+s.getName() );
     }
 
-    public static void printEnginesMappedToService(Service sl) throws SQLException, ClassNotFoundException
-    {
+    public static void printEnginesMappedToService(Service sl) throws SQLException, ClassNotFoundException {
         ServiceRepository sr = new ServiceRepository();
         EngineInfo[] el = sr.getEnginesList();
         el = sr.getEnginesMappedToService(sl);
          for(EngineInfo e : el)
             System.out.println( e.getId()+"-"+e.getName() );
     }
-    public static void printMenu()
-    {
+
+    public static void printMenu() {
         System.out.println("**************************SeCo P2P***************************");
         System.out.println("Insert the number of  you choice");
-        System.out.println("1 ) Print All Services");
-        System.out.println("2 ) Print All Engines");
-        System.out.println("3 ) Print All Engines Mapped to a Service");
-        System.out.println("4 ) Print All Services of an Engine ");
-        System.out.println("5 ) Print All the Relations between Services & Engines");
-        System.out.println("6 ) Add a new Service");
-        System.out.println("7 ) Add a new Engine");
-        System.out.println("8) Add Relation between a Service & an Engine");
-        System.out.println("9) Delete a Service");
+        System.out.println("01) Print All Services");
+        System.out.println("02) Print All Engines");
+        System.out.println("03) Print All Engines Mapped to a Service");
+        System.out.println("04) Print All Services of an Engine ");
+        System.out.println("05) Print All the Relations between Services & Engines");
+        System.out.println("06) Add a new Service");
+        System.out.println("07) Add a new Engine");
+        System.out.println("08) Add Relation between a Service and an Engine");
+        System.out.println("09) Delete a Service");
         System.out.println("10) Delete an Engine");
-        System.out.println("11) Delete Relation between a Service & an Engine by eng");
-        System.out.println("12) Delete Relation between a Service & an Engine by ser");
-        System.out.println("13) Exit");
+        System.out.println("11) Delete all Relations of an Engine");
+        System.out.println("12) Delete all Relations of a Service");
+        System.out.println("13) Delete a Relation between a Service and an Engine");
+        System.out.println("14) Exit");
         System.out.println("**********************************************************************");
     }
+
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
-        
         Scanner reader = new Scanner(System.in);
         int choice=1;
-         while ( choice != 13)
-         {
-             printMenu();
-             choice = reader.nextInt();
-             if( choice == 1) printAllServices();
-             else if (choice == 2) printAllEngines();
-             else if (choice == 3)
-             {
-                 Service sl = new Service ();
-                 System.out.println("Give the ID of the service");
-                 sl.setId(reader.nextInt());
-                 printEnginesMappedToService(sl);
-             }
-             else if (choice == 4)
-             {
-                 EngineInfo eI = new EngineInfo();
-                 System.out.println("Give the ID of the Engine");
-                 eI.setId(reader.nextInt());
-                 printServiceofEngine(eI);
-             }
-             else if(choice == 5)    printAllRelations();
-             else if (choice == 6)
-             {
-                 ServiceRepository sr = new ServiceRepository();
-                 Service sl = new Service();
-                 System.out.println("Insert the name of the new Services");
-                 reader.nextLine();
-                 sl.setName(reader.nextLine());
-                 sr.addNewService(sl);
-             }
-             else if (choice == 7)
-             {
-                 ServiceRepository sr = new ServiceRepository();
-                 EngineInfo eI = new EngineInfo();
-                 System.out.println("Insert the name of the new Engine");
-                 reader.nextLine();
-                 eI.setName(reader.nextLine());
-                 System.out.println("Insert the host address of the new Engine");                 
-                 eI.setHost(reader.nextLine());
-                 System.out.println("Insert the port number of the new Engine");                
-                 eI.setPort(reader.nextInt());
-                 sr.addNewEngine(eI);
-              }
-             else if(choice == 8)
-             {
-                   ServiceRepository sr = new ServiceRepository();
-                   int idService, idEngine;
-                   System.out.println("Insert l'id del servizio");
-                   idService = reader.nextInt();
-                   System.out.println("Insert l'id dell'Engine");
-                   idEngine = reader.nextInt();
-                   sr.addRelServiceEngine(idService, idEngine);
-             }
-             else if (choice == 9)
-             {
-                 ServiceRepository sr = new ServiceRepository();
-                 Service sl = new Service();
-                 System.out.println("Give the ID of the service");
-                 sl.setId(reader.nextInt());
-                 sr.delService(sl);
-             }
-             else if (choice == 10)
-             {
-                 ServiceRepository sr = new ServiceRepository();
-                 EngineInfo eI = new EngineInfo();
-                 System.out.println("Give the ID of the Engine");
-                 eI.setId(reader.nextInt());
-                 sr.delEngine(eI);
-             }
-             else if (choice == 11)
-             {
-                 ServiceRepository sr = new ServiceRepository();
-                 EngineInfo eI = new EngineInfo();
-                 System.out.println("Give the ID of the Engine");
-                 eI.setId(reader.nextInt());
-                 sr.delEngineServices(eI);
-             }
-             else if (choice == 12)
-             {
-                 ServiceRepository sr = new ServiceRepository();
-                 Service sl = new Service();
-                 System.out.println("Give the ID of the Service");
-                 sl.setId(reader.nextInt());
-                 sr.delServiceEngines(sl);
-             }
-         }
+        while ( choice != 14){
+            printMenu();
+            choice = reader.nextInt();
+            Service[] sl;
+            Service s;
+            ServiceRepository sr = new ServiceRepository();
+            EngineInfo[] el;
+            EngineInfo e;
+            switch(choice){
+                case 1:
+                    for(Service srv : sr.getServicesList())
+                        System.out.println( srv );
+                    break;
+                case 2:
+                    for(EngineInfo eng : sr.getEnginesList())
+                        System.out.println( eng );
+                    break;
+                case 3:
+                    System.out.println("Insert the ID of the service");
+                    s = sr.getServiceById( reader.nextInt() );
+                    for(EngineInfo eng : sr.getEnginesMappedToService(s))
+                        System.out.println( eng );
+                    break;
+                case 4:
+                    System.out.println("Give the ID of the Engine");
+                    e = sr.getEngineById( reader.nextInt() );
+                    for(Service srv : sr.getServicesMappedToEngine(e))
+                        System.out.println( srv );
+                    break;
+                case 5:
+                    for (Relation r : sr.getRelationList())
+                        System.out.println(r);
+                    break;
+                case 6:
+                    s = new Service();
+                    System.out.println("Insert the name of the new Services");
+                    reader.nextLine();
+                    s.setName(reader.nextLine());
+                    sr.addNewService(s);
+                    break;
+                case 7:
+                    e = new EngineInfo();
+                    System.out.println("Insert the name of the new Engine");
+                    reader.nextLine();
+                    e.setName(reader.nextLine());
+                    System.out.println("Insert the host address of the new Engine");
+                    e.setHost(reader.nextLine());
+                    System.out.println("Insert the port number of the new Engine");
+                    e.setPort(reader.nextInt());
+                    sr.addNewEngine(e);
+                    break;
+                case 8:
+                    System.out.println("Insert l'id del servizio");
+                    s = sr.getServiceById(reader.nextInt());
+                    System.out.println("Insert l'id dell'Engine");
+                    e = sr.getEngineById(reader.nextInt());
+                    sr.addRelServiceEngine(s, e);
+                    break;
+                case 9:
+                    System.out.println("Give the ID of the service");
+                    s = sr.getServiceById(reader.nextInt());
+                    sr.delService(s);
+                    break;
+                case 10:
+                    System.out.println("Give the ID of the Engine");
+                    e = sr.getEngineById(reader.nextInt());
+                    sr.delEngine(e);
+                    break;
+                case 11:
+                    System.out.println("Give the ID of the Engine");
+                    e = sr.getEngineById(reader.nextInt());
+                    sr.delEngineServices(e);
+                    break;
+                case 12:
+                    System.out.println("Give the ID of the Service");
+                    s = sr.getServiceById(reader.nextInt());
+                    sr.delServiceEngines(s);
+                    break;
+                case 13:
+                    System.out.println("Give the ID of the Service");
+                    s = sr.getServiceById( reader.nextInt() );
+                    System.out.println("Give the ID of the Engine");
+                    e = sr.getEngineById( reader.nextInt() );
+                    sr.delRelSeviceEngine(s, e);
+                    break;
+            }
+        }
     }
 }
