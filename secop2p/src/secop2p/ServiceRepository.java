@@ -58,7 +58,7 @@ public class ServiceRepository {
         selectEnginesList = conn.prepareStatement(
                 "SELECT * FROM engines");
         selectRelationList = conn.prepareStatement(
-                "SELECT * FROM service_map");
+                "SELECT * FROM services_to_engines");
         selectEngineServices = conn.prepareStatement(
                 "SELECT * FROM services_to_engines WHERE engine_id = ?");
         selectServiceEngines = conn.prepareStatement(
@@ -80,8 +80,10 @@ public class ServiceRepository {
         delRelation = conn.prepareStatement(
                 "DELETE FROM service_map WHERE engine_id = ? AND service_id = ?");
         //Nguyen
-        selectEngineById = conn.prepareStatement("SELECT * FROM engines WHERE engine_id = ?");
-        selectServiceById = conn.prepareStatement("SELECT * FROM services WHERE service_id = ?");
+        selectEngineById = conn.prepareStatement(
+                "SELECT * FROM engines WHERE id = ?");
+        selectServiceById = conn.prepareStatement(
+                "SELECT * FROM services WHERE id = ?");
        }
 
     /*
@@ -127,9 +129,17 @@ public class ServiceRepository {
         }
         List<Relation> sl = new ArrayList<Relation>();
         while(rs.next()){
-            sl.add(new Relation(
-                    rs.getInt("service_id"),
-                    rs.getInt("engine_id") ) );
+            Service s = new Service(
+                rs.getInt("service_id"),
+                rs.getString("service_name")
+            );
+            EngineInfo e = new EngineInfo(
+                rs.getInt("engine_id"),
+                rs.getString("engine_name"),
+                rs.getString("host"),
+                rs.getInt("port")
+            );
+            sl.add( new Relation( s, e ) );
         }
         rs.close();
         return sl.toArray(new Relation[0]);
@@ -174,25 +184,35 @@ public class ServiceRepository {
      * Function to add a new type of Service into list
      */
     public boolean  addNewService(Service ser) throws SQLException{
-        boolean result;
+        boolean success;
         synchronized(conn){
             //addService.setInt(1, ser.getId());
             addService.setString(1, ser.getName());
-            result = addService.execute();
-            return result;
+            success = addService.execute();
+            if(success){
+                ResultSet rs = addService.getGeneratedKeys();
+                rs.next();
+                ser.setId( rs.getInt("id") );
+            }
+            return success;
         }
     }
     /*
      * Function to add a new instance of Engine into list
      */
     public boolean addNewEngine(EngineInfo eng) throws SQLException{
-        boolean result;
+        boolean success;
         synchronized(conn){
             addEngine.setString(1,eng.getName());
             addEngine.setString(2,eng.getHost());
             addEngine.setInt(3, eng.getPort());
-            result = addEngine.execute();
-            return result;
+            success = addEngine.execute();
+            if(success){
+                ResultSet rs = addService.getGeneratedKeys();
+                rs.next();
+                eng.setId( rs.getInt("id") );
+            }
+            return success;
         }
     }
     /*
@@ -283,14 +303,15 @@ public class ServiceRepository {
         synchronized(conn){
             resultSet = selectEngineById.executeQuery();
         }
-        while(resultSet.next())
-        {
+        if(resultSet.next()){
             engineInfo = new EngineInfo(
                 resultSet.getInt("id"),
                 resultSet.getString("name"),
                 resultSet.getString("host"),
-                resultSet.getInt("port")) ;
-        }
+                resultSet.getInt("port")
+            ) ;
+        }else
+            throw new java.util.NoSuchElementException();
         resultSet.close();
         return engineInfo;
     }   
@@ -305,10 +326,13 @@ public class ServiceRepository {
         synchronized(conn){
             resultSet=selectServiceById.executeQuery();
         }
-        while(resultSet.next())
-        {
-            service = new Service(resultSet.getInt("id"), resultSet.getString("name"));
-        }
+        if(resultSet.next()){
+            service = new Service(
+                resultSet.getInt("id"),
+                resultSet.getString("name")
+            );
+        }else
+            throw new java.util.NoSuchElementException();
         resultSet.close();
         return  service;
     }
