@@ -27,7 +27,7 @@ import secop2p.RemoteEngine;
 public class Sender {
 
     public static int DEFAULT_INTERVAL = -1;
-    public static int DEFAULT_DELAY = 2500;
+    public static int DEFAULT_DELAY = 500;
     private Timer t;
     private MyTask mt;
     private Set<RemoteEngine> targets;

@@ -18,7 +18,7 @@ public class AliveTest {
 
     @SuppressWarnings("ResultOfObjectAllocationIgnored")
     public static void main(String[] args) throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
-        Sender.DEFAULT_INTERVAL = 4000;
+        Sender.DEFAULT_INTERVAL = 3000;
         new AliveEngine();
         System.out.println("Press any key to create a new test engine");
         System.out.println("Press CTRL+C to exit");

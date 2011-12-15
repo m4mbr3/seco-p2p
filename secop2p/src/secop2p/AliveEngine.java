@@ -25,12 +25,12 @@ import secop2p.util.Sender;
  * @author eros
  */
 public class AliveEngine extends EngineInfo {
-    private final static Set<AliveEngine> aliveEngines =
+    private final static transient Set<AliveEngine> aliveEngines =
             Collections.synchronizedSet(
                 new HashSet<AliveEngine>()
             );
-    private static final int start_port = 8000;
-    private final Set<RemoteEngine> others;
+    private static final transient int start_port = 8000;
+    private final transient Set<RemoteEngine> others;
 
     public AliveEngine(){
         this("Engine "+(aliveEngines.size()+1), "127.0.0.1", start_port+aliveEngines.size());
@@ -74,6 +74,9 @@ public class AliveEngine extends EngineInfo {
         }catch(IOException ex){
             Logger.getLogger(AliveEngine.class.getName()).log(Level.SEVERE, null, ex);
             throw ex;
+        }catch(Exception ex){
+            Logger.getLogger(AliveEngine.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
         }
     }
 
@@ -86,7 +89,7 @@ public class AliveEngine extends EngineInfo {
 
 }
 
-final class Message implements Serializable {
+class Message implements Serializable {
 
     EngineInfo from;
     Metrics m;
@@ -106,7 +109,6 @@ final class Message implements Serializable {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);
         synchronized(this){
-            oos.reset();
             oos.writeObject(this);
             oos.close();
         }
