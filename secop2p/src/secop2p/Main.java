@@ -33,7 +33,7 @@ public class Main {
         System.out.println("12) Delete all Relations of a Service");
         System.out.println("13) Delete a Relation between a Service and an Engine");
         System.out.println("14) Exit");
-        System.out.println("**********************************************************************");
+        System.out.println("**************************SeCo P2P***************************");
     }
 
     public static void main(String[] args) throws SQLException, ClassNotFoundException {

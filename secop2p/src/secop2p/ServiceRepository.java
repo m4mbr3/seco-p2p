@@ -68,7 +68,7 @@ public class ServiceRepository {
         addEngine = conn.prepareStatement(
                 "INSERT OR ROLLBACK INTO engines (name, host, port) VALUES (?,?,?)" );
         addRelation = conn.prepareStatement(
-                "INSERT OR ROLLBACK INTO service_map (service_id,engine_id) VALUES (?,?)");
+                "INSERT OR REPLACE INTO service_map (service_id,engine_id) VALUES (?,?)");
         delService = conn.prepareStatement(
                 "DELETE FROM services  WHERE id = ?");
         delServiceEngines = conn.prepareStatement(
