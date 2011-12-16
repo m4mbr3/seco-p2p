@@ -15,6 +15,7 @@ public class RemoteInvoker implements HttpInvoker {
 
              /** Logger. */
             private static final Logger LOG = LoggerFactory.getLogger(RemoteInvoker.class);
+
             ServiceRepository sr ;
             public RemoteInvoker () throws ClassNotFoundException
             {
