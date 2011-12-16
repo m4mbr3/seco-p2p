@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Collections;
+import java.util.HashMap;
 
 
 public final class LocalMap implements Serializable{
@@ -21,7 +22,7 @@ public final class LocalMap implements Serializable{
        public  LocalMap(Set<EngineInfo> engines, Set<Service> services,Set<Relation> relations ){
                 this.engines  = engines;
                 for(Service s : services)
-                    this.services.put(s, new HashSet<EngineInfo>());
+                    this.services =  new HashMap<Service, Set<EngineInfo>>();
                 for(Relation r : relations)
                     this.services.get(r.getService()).add(r.getEngine());
        }
