@@ -15,8 +15,8 @@ CREATE TABLE service_map (
 	`service_id` INTEGER,
 	`engine_id` INTEGER,
 	CONSTRAINT `my_index` UNIQUE ( `service_id`, `engine_id` ),
-	FOREIGN KEY (`service_id`) REFERENCES `services` (`id`),
-	FOREIGN KEY (`engine_id`) REFERENCES `engines` ( `id`)
+	FOREIGN KEY (`service_id`) REFERENCES `services` (`id`) ON DELETE CASCADE,
+	FOREIGN KEY (`engine_id`) REFERENCES `engines` ( `id`) ON DELETE CASCADE
 );
 INSERT INTO `services` VALUES (1, 'serv1');
 INSERT INTO `engines` VALUES (1, 'eng1', '0.0.0.0', 1234, 'test');

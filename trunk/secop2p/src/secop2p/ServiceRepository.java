@@ -144,6 +144,7 @@ public class ServiceRepository {
         rs.close();
         return sl.toArray(new Relation[0]);
     }
+
     /*
      * Function to get the Services of an engine searched by ID
      */
@@ -184,35 +185,35 @@ public class ServiceRepository {
      * Function to add a new type of Service into list
      */
     public boolean  addNewService(Service ser) throws SQLException{
-        boolean success;
+        int success;
         synchronized(conn){
             //addService.setInt(1, ser.getId());
             addService.setString(1, ser.getName());
-            success = addService.execute();
-            if(success){
+            success = addService.executeUpdate();
+            if(success > 0){
                 ResultSet rs = addService.getGeneratedKeys();
                 rs.next();
-                ser.setId( rs.getInt("id") );
+                ser.setId( rs.getInt(1) );
             }
-            return success;
+            return success > 0;
         }
     }
     /*
      * Function to add a new instance of Engine into list
      */
     public boolean addNewEngine(EngineInfo eng) throws SQLException{
-        boolean success;
+        int success;
         synchronized(conn){
             addEngine.setString(1,eng.getName());
             addEngine.setString(2,eng.getHost());
             addEngine.setInt(3, eng.getPort());
-            success = addEngine.execute();
-            if(success){
-                ResultSet rs = addService.getGeneratedKeys();
+            success = addEngine.executeUpdate();
+            if(success > 0){
+                ResultSet rs = addEngine.getGeneratedKeys();
                 rs.next();
-                eng.setId( rs.getInt("id") );
+                eng.setId( rs.getInt(1) );
             }
-            return success;
+            return success > 0;
         }
     }
     /*

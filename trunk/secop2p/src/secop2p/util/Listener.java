@@ -9,7 +9,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -27,19 +26,26 @@ import java.util.logging.Logger;
  */
 public class Listener extends Thread {
 
-    private int port;
-    private boolean stopped = false;
-    private Method callback;
+    private ServerSocketChannel ssc;
+    private boolean stopped = true;
+    private ListenerCallback callback;
     private Object callee;
 
-    public Listener(int port, Method callback, Object callee){
-        this(port, callback, callee, true);
+    public Listener(int port, ListenerCallback callback){
+        this(port, callback, true);
     }
 
-    public Listener(int port, Method callback, Object callee, boolean autostart){
-        this.port = port;
+    public Listener(int port, ListenerCallback callback, boolean autostart){
+        this(PortChecker.getBoundedServerSocketChannelOrNull(port), callback, autostart);
+    }
+
+    public Listener(ServerSocketChannel ssc, ListenerCallback callback){
+        this(ssc, callback, true);
+    }
+
+    public Listener(ServerSocketChannel ssc, ListenerCallback callback, boolean autostart){
         this.callback = callback;
-        this.callee = callee;
+        this.ssc = ssc;
         if(autostart){
             new Timer().schedule(
                 new TimerTask(){
@@ -54,6 +60,7 @@ public class Listener extends Thread {
 
     @Override
     public void run(){
+        stopped = false;
         try{
             Runtime.getRuntime().addShutdownHook(new Thread(){
                 @Override
@@ -62,8 +69,6 @@ public class Listener extends Thread {
                 }
             });
             Selector selector = Selector.open();
-            ServerSocketChannel ssc = ServerSocketChannel.open();
-            ssc.socket().bind(new InetSocketAddress(port));
             ssc.configureBlocking(false);
             ssc.register(selector, SelectionKey.OP_ACCEPT);
             while(!stopped){
@@ -99,35 +104,47 @@ public class Listener extends Thread {
         @Override
         public void run(){
             try {
+                callback.handleRequest(sc.socket().getInputStream(), sc.socket().getOutputStream());
+            } catch (IOException ex) {
+                Logger.getLogger(Listener.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                try{
+                    sc.close();
+                }catch(IOException e){
+                    //Do nothing
+                }
+            }
+                /*
+                try {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 byte[] buf = new byte[4096];
                 int rbytes;
                 while( (rbytes = sc.socket().getInputStream().read(buf)) > -1){
-                    baos.write(buf,0,rbytes);
+                baos.write(buf,0,rbytes);
                 }
                 baos.close();
                 try{
-                    sc.socket().getInputStream().close();
+                sc.socket().getInputStream().close();
                 }catch(SocketException e){}
                 try{
-                    sc.socket().getOutputStream().close();
+                sc.socket().getOutputStream().close();
                 }catch(SocketException e){}
                 try{
-                    sc.socket().close();
+                sc.socket().close();
                 }catch(SocketException e){}
                 try{
-                    sc.close();
+                sc.close();
                 }catch(SocketException e){}
                 // invoke the callback with the received text
                 callback.invoke(callee, baos.toByteArray());
-            } catch (IOException ex) {
+                } catch (IOException ex) {
                 Logger.getLogger(Listener.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IllegalAccessException ex) {
+                } catch (IllegalAccessException ex) {
                 Logger.getLogger(Listener.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InvocationTargetException ex) {
+                } catch (InvocationTargetException ex) {
                 Logger.getLogger(Listener.class.getName()).log(Level.SEVERE, null, ex);
                 Logger.getLogger(Listener.class.getName()).log(Level.SEVERE, null, ex.getCause());
-            }
+                }*/
         }
 
     }

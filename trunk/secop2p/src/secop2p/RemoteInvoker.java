@@ -5,30 +5,21 @@
 package secop2p;
 
 import java.sql.SQLException;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Nguyen Ho
  * Description: Building a http request to remote service
  */
-public class RemoteInvoker implements HttpInvoker {
+public class RemoteInvoker /*implements HttpInvoker*/ {
 
-             /** Logger. */
-            private static final Logger LOG = LoggerFactory.getLogger(RemoteInvoker.class);
+    /** Logger. */
+    private static final Logger LOG = Logger.getLogger(RemoteInvoker.class.getName());
+    private final ServiceRepository sr ;
 
-            ServiceRepository sr ;
-            public RemoteInvoker () throws ClassNotFoundException
-            {
-                try{
-                        sr = new ServiceRepository();
-                }
-                catch(SQLException e)
-                {
+    public RemoteInvoker () throws ClassNotFoundException, SQLException {
+        sr = new ServiceRepository();
+    }
 
-                }
-                catch(ClassNotFoundException e)
-                {
-
-                }
-            }
 }
