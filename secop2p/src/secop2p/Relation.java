@@ -1,6 +1,7 @@
 package secop2p;
 
 import java.io.Serializable;
+import secop2p.util.Serializer;
 
 
 
@@ -34,7 +35,7 @@ public class Relation implements Serializable, Comparable {
 
     @Override
     public String toString(){
-        return "<Relation>"+e+s+"</Relation>";
+        return Serializer.toXML(this);
     }
 
 }

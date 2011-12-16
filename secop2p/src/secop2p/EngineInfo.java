@@ -1,12 +1,12 @@
 package secop2p;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import secop2p.util.Serializer;
 
 /**
  * @author eros
@@ -71,19 +71,7 @@ public class EngineInfo implements Serializable, RemoteEngine {
 
     @Override
     public String toString(){
-        StringBuilder sb = new StringBuilder();
-        sb.append("<"+this.getClass().getSimpleName());
-        for(Field f : this.getClass().getDeclaredFields()){
-            try {
-                sb.append(" "+f.getName() + "='" + f.get(this) + "'");
-            } catch (IllegalArgumentException ex) {
-                Logger.getLogger(EngineInfo.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IllegalAccessException ex) {
-                Logger.getLogger(EngineInfo.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        sb.append(">");
-        return sb.toString();
+        return Serializer.toXML(this);
     }
 
     public InetSocketAddress getSocketAddress() {
