@@ -5,11 +5,7 @@
 
 package secop2p.util;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.SocketException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -104,9 +100,7 @@ public class Listener extends Thread {
         @Override
         public void run(){
             try {
-                callback.handleRequest(sc.socket().getInputStream(), sc.socket().getOutputStream());
-            } catch (IOException ex) {
-                Logger.getLogger(Listener.class.getName()).log(Level.SEVERE, null, ex);
+                callback.handleRequest(sc);
             } finally {
                 try{
                     sc.close();

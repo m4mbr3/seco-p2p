@@ -7,6 +7,7 @@ package secop2p.util;
 
 import java.io.IOException;
 import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.channels.ServerSocketChannel;
@@ -23,7 +24,8 @@ final public class PortChecker {
         ServerSocketChannel ssc = null;
         try {
             ssc = ServerSocketChannel.open();
-            SocketAddress sa = new InetSocketAddress(Inet4Address.getLocalHost(),num);
+            InetAddress ia = Inet4Address.getByName("0.0.0.0");
+            SocketAddress sa = new InetSocketAddress(ia,num);
             ssc.socket().bind(sa);
             return ssc;
         } catch (IOException e) {

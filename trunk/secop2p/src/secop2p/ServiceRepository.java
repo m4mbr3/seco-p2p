@@ -194,6 +194,7 @@ public class ServiceRepository {
                 ResultSet rs = addService.getGeneratedKeys();
                 rs.next();
                 ser.setId( rs.getInt(1) );
+                System.out.println("Service aggiunto: "+ser);
             }
             return success > 0;
         }
@@ -213,34 +214,36 @@ public class ServiceRepository {
                 rs.next();
                 eng.setId( rs.getInt(1) );
             }
+            System.out.println("Engine aggiunto: "+eng);
             return success > 0;
         }
     }
     /*
      * Function for adding a new relation between a service and an engine
      */
-     public boolean addRelServiceEngine(Service s, EngineInfo e) throws SQLException {
-         boolean result;
-         synchronized(conn){
-             addRelation.setInt(1,s.getId());
-             addRelation.setInt(2,e.getId());
-             result = addRelation.execute();
-             return result;
-         }
-     }
+    public boolean addRelServiceEngine(Service s, EngineInfo e) throws SQLException {
+        int result;
+        synchronized(conn){
+            addRelation.setInt(1,s.getId());
+            addRelation.setInt(2,e.getId());
+            result = addRelation.executeUpdate();
+            System.out.println("Relation aggiunta: "+new Relation(s, e)+" with result "+result);
+            return result > 0;
+        }
+    }
 
     /*
      * Function that delete  a service from the system thinking also to all dependences
      * with engines
      */
     public boolean delService(Service ser) throws SQLException{
-            boolean result;
-            result = delServiceEngines(ser);
+            int result;
+            delServiceEngines(ser);
             synchronized(conn){
                 System.out.println("L'id da eliminare è"+ser.getId());
                 delService.setInt(1, ser.getId());
-                result = delService.execute();
-                return result;
+                result = delService.executeUpdate();
+                return result > 0;
             }
         }
 
@@ -249,11 +252,11 @@ public class ServiceRepository {
      * by ServiceID
      */
     public boolean delServiceEngines(Service ser) throws SQLException{
-        boolean result;
+        int result;
         synchronized(conn){
             delServiceEngines.setInt(1,ser.getId());
-            result = delServiceEngines.execute();
-            return result;
+            result = delServiceEngines.executeUpdate();
+            return result > 0;
          }
     }
 
@@ -262,12 +265,12 @@ public class ServiceRepository {
      * with engines
      */
     public boolean delEngine(EngineInfo eng) throws SQLException{
-        boolean result;
-        result = delEngineServices(eng);
+        int result;
+        delEngineServices(eng);
         synchronized(conn){
             delEngine.setInt(1,eng.getId());
-            result = delEngine.execute();
-            return result;
+            result = delEngine.executeUpdate();
+            return result > 0;
         }
     }
 
@@ -276,21 +279,21 @@ public class ServiceRepository {
      * by EngineID
      */
     public boolean delEngineServices(EngineInfo eng) throws SQLException{
-        boolean result;
+        int result;
         synchronized(conn){
             delEngineServices.setInt(1,eng.getId());
-            result = delEngineServices.execute();
-            return result;
+            result = delEngineServices.executeUpdate();
+            return result > 0;
         }
     }
 
     public boolean delRelSeviceEngine(Service s, EngineInfo e) throws SQLException{
-         boolean result;
+         int result;
          synchronized(conn){
              delRelation.setInt(1,s.getId());
              delRelation.setInt(2,e.getId());
-             result = delRelation.execute();
-             return result;
+             result = delRelation.executeUpdate();
+             return result > 0;
          }
     }
 

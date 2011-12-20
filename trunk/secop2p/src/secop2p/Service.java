@@ -6,7 +6,7 @@ import secop2p.util.Serializer;
 /**
  * @author eros
  */
-public class Service implements Serializable {
+public class Service implements Serializable, Comparable {
 
     private int id;
     private String name;
@@ -46,6 +46,14 @@ public class Service implements Serializable {
     @Override
     public String toString(){
         return Serializer.toXML(this);
+    }
+
+    public int compareTo(Object t) {
+        if(t instanceof Service){
+            Service s = (Service) t;
+            return name.compareTo(s.name);
+        }else
+            return Integer.MAX_VALUE;
     }
 
 }
