@@ -5,8 +5,6 @@
 
 package secop2p.util;
 
-import java.beans.XMLDecoder;
-import java.beans.XMLEncoder;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -57,18 +55,6 @@ public class Serializer {
         return baos.toByteArray();
     }
 
-    public static String serializeToXML(Object o){
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        XMLEncoder xe = new XMLEncoder(baos);
-        xe.writeObject(o);
-        return new String(baos.toByteArray());
-    }
-
-/*    public static Object deserializeFromXML(String s){
-        ByteArrayInputStream bais = new ByteArrayInputStream
-        XMLDecoder xd = new XMLDecoder(bais);
-    }
-*/
     public static <E>E deserialize(byte[] serialized, Class<E> type) throws IOException, ClassNotFoundException {
         ByteArrayInputStream bais = new ByteArrayInputStream(serialized);
         ObjectInputStream ois = new ObjectInputStream(bais);

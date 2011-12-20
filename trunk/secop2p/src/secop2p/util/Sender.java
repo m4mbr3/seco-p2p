@@ -17,7 +17,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import secop2p.EngineInfo;
 import secop2p.RemoteEngine;
 
 /**

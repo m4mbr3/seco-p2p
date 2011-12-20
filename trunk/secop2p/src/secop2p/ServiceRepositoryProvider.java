@@ -21,7 +21,6 @@ import secop2p.util.ListenerCallback;
 import secop2p.util.MessageReceivedCallback;
 import secop2p.util.MessageStreamReader;
 import secop2p.util.MessageStreamWriter;
-import secop2p.util.Serializer;
 
 /**
  *

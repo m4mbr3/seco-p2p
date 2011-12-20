@@ -7,16 +7,13 @@ package secop2p;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.channels.SocketChannel;
 import java.util.HashSet;
 import java.util.Set;
-import secop2p.util.MessageOutputStream;
 import secop2p.util.MessageReceivedCallback;
 import secop2p.util.MessageStreamReader;
 import secop2p.util.MessageStreamWriter;
-import secop2p.util.Serializer;
 
 /**
  *
