@@ -13,7 +13,7 @@ import secop2p.util.Serializer;
  *
  * Dummy class that represents an engine
  */
-public class EngineInfo implements Serializable, RemoteEngine {
+public class EngineInfo implements Serializable, RemoteEngine, Comparable {
 
     private int id;
     private String name;
@@ -82,6 +82,17 @@ public class EngineInfo implements Serializable, RemoteEngine {
             Logger.getLogger(EngineInfo.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
+    }
+
+    public int compareTo(Object t) {
+        if(t instanceof EngineInfo){
+            EngineInfo e = (EngineInfo) t;
+            if(e.host.equals(this.host)){
+                return this.port - e.port;
+            }else
+                return e.getHost().compareTo(this.host);
+        }else
+            return Integer.MAX_VALUE;
     }
 
 }

@@ -5,14 +5,12 @@
 
 package secop2p.util;
 
-import java.nio.channels.SocketChannel;
-
 /**
  *
  * @author eros
  */
-public interface ListenerCallback {
+public interface MessageReceivedCallback {
 
-    public void handleRequest( SocketChannel client );
+    public void messageReceived(Object o);
 
 }

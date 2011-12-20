@@ -7,10 +7,9 @@ package secop2p;
 
 import secop2p.util.PortChecker;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -85,11 +84,11 @@ public class AliveEngine extends EngineInfo implements ListenerCallback {
         }
     }
 
-    public void handleRequest(InputStream in, OutputStream out) {
+    public void handleRequest(SocketChannel client) {
         synchronized(System.out){
             Message m;
             try {
-                m = Serializer.deserialize(in, Message.class);
+                m = Serializer.deserialize(client.socket().getInputStream(), Message.class);
                 System.out.println(m);
             } catch (IOException ex) {
                 Logger.getLogger(AliveEngine.class.getName()).log(Level.SEVERE, null, ex);

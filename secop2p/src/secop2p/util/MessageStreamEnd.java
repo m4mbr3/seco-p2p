@@ -5,14 +5,12 @@
 
 package secop2p.util;
 
-import java.nio.channels.SocketChannel;
+import java.io.Serializable;
 
 /**
  *
  * @author eros
  */
-public interface ListenerCallback {
-
-    public void handleRequest( SocketChannel client );
+public class MessageStreamEnd implements Serializable {
 
 }

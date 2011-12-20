@@ -5,34 +5,34 @@
 
 package secop2p;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import secop2p.util.PortChecker;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import secop2p.util.Listener;
 import secop2p.util.ListenerCallback;
+import secop2p.util.MessageReceivedCallback;
+import secop2p.util.MessageStreamReader;
+import secop2p.util.MessageStreamWriter;
 import secop2p.util.Serializer;
 
 /**
  *
  * @author eros
  */
-public final class ServiceRepositoryProvider implements ListenerCallback {
+public final class ServiceRepositoryProvider implements ListenerCallback, MessageReceivedCallback {
 
     private static final int DEFAULT_PORT = 8000;
     private final ServiceRepository sr;
     private int port;
-    Listener l;
+    private Listener l;
 
     public ServiceRepositoryProvider() throws SQLException, ClassNotFoundException, IOException, NoSuchMethodException{
         this(0);
@@ -76,25 +76,46 @@ public final class ServiceRepositoryProvider implements ListenerCallback {
         return new LocalMap(engines, services, relations);
     }
 
-    public void handleRequest(InputStream in, OutputStream out) {
+    public void handleRequest(SocketChannel client) {
         try {
-            LocalMap map = getLocalMap();
-            out.write( Serializer.serialize(map) );
-        } catch (IOException ex) {
-            Logger.getLogger(ServiceRepositoryProvider.class.getName()).log(Level.SEVERE, null, ex);
+            MessageStreamReader msr = new MessageStreamReader(client, this);
+            msr.run(); // read all object sent from the client
+            MessageStreamWriter msw = new MessageStreamWriter(client);
+            msw.writeMessage(getLocalMap());
+            msw.close();
         } catch (SQLException ex) {
+            Logger.getLogger(ServiceRepositoryProvider.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
             Logger.getLogger(ServiceRepositoryProvider.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
+    public void stop(){
+        l.close();
+    }
+
+    @SuppressWarnings("ResultOfObjectAllocationIgnored")
     public static void main(String[] args) throws SQLException, ClassNotFoundException, IOException, NoSuchMethodException{
         ServiceRepositoryProvider srp = new ServiceRepositoryProvider();
+        Engine e = new Engine("TEST");
+        Service s = new Service("ServTEST");
+        e.addService(s);
+        srp.stop();
+    }
+
+    public void messageReceived(Object o) {
         try {
-            Thread.sleep(500);
-        } catch (InterruptedException ex) {}
-        Socket s = new Socket("127.0.1.1", srp.port);
-        LocalMap map = Serializer.deserialize( s.getInputStream(), LocalMap.class );
-        System.out.println( map );
+            if(o instanceof EngineInfo){
+                sr.addNewEngine((EngineInfo) o);
+            } else if(o instanceof Service){
+                sr.addNewService((Service)o);
+            } else if(o instanceof Relation){
+                Relation r = (Relation) o;
+                sr.addRelServiceEngine(r.getService(), r.getEngine());
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceRepositoryProvider.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
 }
