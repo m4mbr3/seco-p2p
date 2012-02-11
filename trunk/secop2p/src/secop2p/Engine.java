@@ -52,6 +52,7 @@ public class Engine extends EngineInfo implements MessageReceivedCallback {
     public Engine(String name, InetSocketAddress listenTo, InetSocketAddress servRepo) throws ClassNotFoundException, IOException{
         super(name, listenTo.getHostName(), listenTo.getPort());
         this.servRepo = servRepo;
+        this.supported_services = new HashSet<Service>();
         if( ! getLocalMap().getEngines().contains(this) ){
             SocketChannel sc = SocketChannel.open(servRepo);
             MessageStreamWriter msw = new MessageStreamWriter(sc);
@@ -60,6 +61,10 @@ public class Engine extends EngineInfo implements MessageReceivedCallback {
             MessageStreamReader msr = new MessageStreamReader(sc, this);
             msr.run();
             sc.close();
+        }else{
+            for(Service s : map.getServicesMap().keySet())
+                if(map.getServicesMap().get(s).contains(this))
+                    supported_services.add(s);
         }
     }
 
@@ -98,6 +103,14 @@ public class Engine extends EngineInfo implements MessageReceivedCallback {
     public void messageReceived(Object o) {
         if(o instanceof LocalMap){
             this.map = (LocalMap) o;
+            for(EngineInfo e : map.getEngines())
+                if(e == this)
+                    this.setId(e.getId());
+            for(Service s : map.getServices())
+                if(supported_services.contains(s)){
+                    supported_services.remove(s);
+                    supported_services.add(s); //overwrite
+                }
             lastUpdate = System.currentTimeMillis();
         }
     }

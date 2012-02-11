@@ -96,21 +96,22 @@ public final class ServiceRepositoryProvider implements ListenerCallback, Messag
     @SuppressWarnings("ResultOfObjectAllocationIgnored")
     public static void main(String[] args) throws SQLException, ClassNotFoundException, IOException, NoSuchMethodException{
         ServiceRepositoryProvider srp = new ServiceRepositoryProvider();
-        Engine e = new Engine("TEST");
-        Service s = new Service("ServTEST");
-        e.addService(s);
-        srp.stop();
     }
 
     public void messageReceived(Object o) {
         try {
             if(o instanceof EngineInfo){
-                sr.addNewEngine((EngineInfo) o);
+                EngineInfo e = (EngineInfo) o;
+                if(!Arrays.asList(sr.getEnginesList()).contains(e))
+                    sr.addNewEngine(e);
             } else if(o instanceof Service){
-                sr.addNewService((Service)o);
+                Service s = (Service)o;
+                if(!Arrays.asList(sr.getServicesList()).contains(s))
+                    sr.addNewService(s);
             } else if(o instanceof Relation){
                 Relation r = (Relation) o;
-                sr.addRelServiceEngine(r.getService(), r.getEngine());
+                if(!Arrays.asList(sr.getRelationList()).contains(r))
+                    sr.addRelServiceEngine(r.getService(), r.getEngine());
             }
         } catch (SQLException ex) {
             Logger.getLogger(ServiceRepositoryProvider.class.getName()).log(Level.SEVERE, null, ex);
