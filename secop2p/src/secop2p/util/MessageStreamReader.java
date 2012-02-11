@@ -20,7 +20,7 @@ import java.util.logging.Logger;
  */
 public class MessageStreamReader implements Runnable {
 
-    public static int TIMEOUT = 3000;
+    public static int TIMEOUT = 20000;
 
     private final SocketChannel sc;
     private final Selector s;

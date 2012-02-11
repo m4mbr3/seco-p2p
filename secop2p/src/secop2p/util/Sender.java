@@ -8,6 +8,7 @@ package secop2p.util;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -17,7 +18,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import secop2p.RemoteEngine;
 
 /**
  *
@@ -29,15 +29,15 @@ public class Sender {
     public static int DEFAULT_DELAY = 500;
     private Timer t;
     private MyTask mt;
-    private Set<RemoteEngine> targets;
+    private Set<InetSocketAddress> targets;
     private Method callback;
     private Object callee;
 
-    public Sender(Set<RemoteEngine> targets, Method callback, Object callee){
+    public Sender(Set<InetSocketAddress> targets, Method callback, Object callee){
         this(targets, callback, callee, DEFAULT_INTERVAL);
     }
 
-    public Sender(Set<RemoteEngine> targets, Method callback, Object callee, int interval){
+    public Sender(Set<InetSocketAddress> targets, Method callback, Object callee, int interval){
         t = new Timer();
         mt = new MyTask();
         this.targets = Collections.synchronizedSet(targets);
@@ -76,10 +76,10 @@ public class Sender {
             } catch (InvocationTargetException ex) {
                 Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
             }
-            for(RemoteEngine e : targets.toArray(new RemoteEngine[0])){
+            for(InetSocketAddress isa : targets.toArray(new InetSocketAddress[0])){
                 try {
                     Socket s = new Socket();
-                    s.connect(e.getSocketAddress());
+                    s.connect(isa);
                     s.getOutputStream().write(msg);
                     try{
                         s.getOutputStream().close();

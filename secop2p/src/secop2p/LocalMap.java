@@ -4,11 +4,11 @@ package secop2p;
 import java.io.IOException;
 import java.io.Serializable;
 import java.sql.SQLException;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import secop2p.util.Serializer;
 
 
@@ -24,9 +24,9 @@ public final class LocalMap implements Serializable{
 
     public  LocalMap(Set<EngineInfo> engines, Set<Service> services,Set<Relation> relations ){
         this.engines  = engines;
-        this.services = new HashMap<Service, Set<EngineInfo>>();
+        this.services = new TreeMap<Service, Set<EngineInfo>>();
         for(Service s : services)
-            this.services.put(s, new HashSet<EngineInfo>());
+            this.services.put(s, new TreeSet<EngineInfo>());
         for(Relation r : relations)
             this.services.get(r.getService()).add(r.getEngine());
     }

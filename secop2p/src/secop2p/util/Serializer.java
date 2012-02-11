@@ -30,6 +30,7 @@ public class Serializer {
     public static void serialize(Object o, OutputStream out) throws IOException{
         ObjectOutputStream oos = new ObjectOutputStream(out);
         synchronized(o){
+            oos.reset();
             oos.writeObject(o);
             oos.flush();
             System.out.println("Written obj: "+o);
@@ -47,6 +48,7 @@ public class Serializer {
     public static byte[] serialize(Object o) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.reset();
         synchronized(o){
             oos.writeObject(o);
             oos.close();
