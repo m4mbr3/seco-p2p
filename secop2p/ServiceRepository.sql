@@ -35,6 +35,7 @@ SELECT
     e.`port` AS `port`,
     e.`desc` AS `engine_desc`,
     e.`last_alive_timestamp` AS `last_alive_timestamp`,
+    e.`alive_port` AS `alive_port`,
     `service_id`,
     s.`name` AS `service_name`
 FROM 

@@ -4,6 +4,7 @@
  */
 package secop2p;
 import java.sql.SQLException;
+import java.util.Set;
 
 /**
  *
@@ -17,10 +18,9 @@ public class ServiceValidation {
         boolean isLocal = false;
         ServiceRepository serviceRepository = new ServiceRepository();
         EngineInfo engine = serviceRepository.getEngineById(localEngineId);
-        Service[] serviceList = serviceRepository.getServicesMappedToEngine(engine);
-        for(int i=0; i<serviceList.length; i++)
+        Set<Service> serviceList = serviceRepository.getServicesMappedToEngine(engine);
+        for(Service service : serviceList)
         {
-            Service service = serviceList[i];
             if(service.getId()==serviceId)
             {
                 isLocal=true;
