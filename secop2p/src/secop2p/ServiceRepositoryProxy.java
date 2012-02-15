@@ -24,8 +24,8 @@ import secop2p.util.MessageStreamWriter;
  */
 public class ServiceRepositoryProxy implements MessageReceivedCallback {
 
-    public static int DEFAULT_INTERVAL = 60;//*60;
-    public static long BAN_TIME = 45;//5*60;
+    public static int DEFAULT_INTERVAL = 60;//*60*1000;
+    public static long BAN_TIME = 5*60*1000;
 
     private final EngineInfo thisEngine;
     private final InetSocketAddress repoAddr;
@@ -90,7 +90,7 @@ public class ServiceRepositoryProxy implements MessageReceivedCallback {
 
     public Set<EngineInfo> getEngines() throws IOException{
         updateIfNecessary();
-        return map.getEngines();
+        return filterBanned(map.getEngines());
     }
 
     public Set<Service> getServices() throws IOException{

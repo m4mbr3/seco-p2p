@@ -63,7 +63,6 @@ public class Sender {
             try {
                 msg = messageGenerator.generateMessage();
                 Set<InetSocketAddress> targets = targetGenerator.getTargetsList();
-                System.out.println(targets);
                 for(InetSocketAddress isa : targets){
                     Socket s = new Socket();
                     s.connect(isa);

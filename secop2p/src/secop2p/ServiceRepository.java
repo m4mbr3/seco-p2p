@@ -272,7 +272,7 @@ public class ServiceRepository {
                 rs.next();
                 eng.setId( rs.getInt(1) );
             }
-            System.out.println("Engine aggiunto: "+eng);
+            System.out.println("Added engine: "+eng);
             return success > 0;
         }
     }
@@ -400,12 +400,13 @@ public class ServiceRepository {
         return  service;
     }
 
-    void updateLastAliveTimestamp(EngineInfo from, long timestamp) throws SQLException {
+    boolean updateLastAliveTimestamp(EngineInfo from, long timestamp) throws SQLException {
         //TODO check id is valid
         synchronized(conn){
             updateLastAliveTimestamp.setLong(1, timestamp);
             updateLastAliveTimestamp.setInt(2, from.getId());
-            updateLastAliveTimestamp.executeUpdate();
+            int res = updateLastAliveTimestamp.executeUpdate();
+            return res > 0;
         }
     }
     
