@@ -24,8 +24,8 @@ import secop2p.util.MessageStreamWriter;
  */
 public class ServiceRepositoryProxy implements MessageReceivedCallback {
 
-    public static int DEFAULT_INTERVAL = 60*60;
-    public static long BAN_TIME = 5*60;
+    public static int DEFAULT_INTERVAL = 60;//*60;
+    public static long BAN_TIME = 45;//5*60;
 
     private final EngineInfo thisEngine;
     private final InetSocketAddress repoAddr;
@@ -133,6 +133,7 @@ public class ServiceRepositoryProxy implements MessageReceivedCallback {
     public void banEngine(EngineInfo ei){
         if(bannedEngines.containsKey(ei))
             bannedEngines.remove(ei);
+        System.out.println("Banning engine: "+ei);
         bannedEngines.put(ei, System.currentTimeMillis()+BAN_TIME);
     }
 

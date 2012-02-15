@@ -71,7 +71,7 @@ public class ServiceRepository {
         addService = conn.prepareStatement(
                 "INSERT OR ROLLBACK INTO services (name) VALUES (? ) ");
         addEngine = conn.prepareStatement(
-                "INSERT OR ROLLBACK INTO engines (name, host, port) VALUES (?,?,?)" );
+                "INSERT OR ROLLBACK INTO engines (name, host, port, alive_port) VALUES (?,?,?,?)" );
         addRelation = conn.prepareStatement(
                 "INSERT OR REPLACE INTO service_map (service_id,engine_id) VALUES (?,?)");
         delService = conn.prepareStatement(
@@ -265,6 +265,7 @@ public class ServiceRepository {
             addEngine.setString(1,eng.getName());
             addEngine.setString(2,eng.getHost());
             addEngine.setInt(3, eng.getPort());
+            addEngine.setInt(4, eng.getAlivePort());
             success = addEngine.executeUpdate();
             if(success > 0){
                 ResultSet rs = addEngine.getGeneratedKeys();

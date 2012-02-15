@@ -6,6 +6,8 @@
 package secop2p;
 
 import java.io.Serializable;
+import javax.rmi.CORBA.Util;
+import secop2p.util.Serializer;
 
 /**
  *
@@ -33,6 +35,10 @@ public class AliveMessage implements Serializable {
 
     public long getTimestamp() {
         return timestamp;
+    }
+
+    public String toString(){
+        return Serializer.toXML(this);
     }
 
 }
