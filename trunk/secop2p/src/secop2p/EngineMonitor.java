@@ -83,7 +83,7 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
         Set<InetSocketAddress> targets = new HashSet<InetSocketAddress>();
         try {
             for (EngineInfo ei : srp.getEngines()) {
-                if( ei != this.engineInfo)
+                if( ei.compareTo(this.engineInfo) != 0)
                     targets.add(ei.getAliveSocketAddress());
             }
         } catch (IOException ex) {
@@ -125,6 +125,25 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
         int alive_port = Integer.parseInt(args[i++]);
         EngineInfo ei = new EngineInfo(id, "eng"+id, "127.0.0.1", port, alive_port);
         new EngineMonitor(ei);
+    }
+
+    public EngineInfo getBestSuitedEngine(Service s) throws IOException{
+        Set<EngineInfo> engs = getAliveEnginesMappedToService(s);
+        EngineInfo best = null;
+        Metrics m = null;
+        for(EngineInfo ei : engs){
+            if(messages.containsKey(ei)){
+                Metrics mt = messages.get(ei).getMetrics();
+                if(best == null){
+                    best = ei;
+                    m = mt;
+                }else if(mt.evaluate() > m.evaluate()){
+                    best = ei;
+                    m = mt;
+                }
+            }
+        }
+        return best;
     }
 
 }

@@ -6,7 +6,6 @@
 package secop2p;
 
 import java.io.Serializable;
-import javax.rmi.CORBA.Util;
 import secop2p.util.Serializer;
 
 /**

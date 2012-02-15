@@ -45,7 +45,7 @@ public final class LocalMap implements Serializable{
 
     @Override
     public String toString(){
-        return Serializer.toXML(this, "services");
+        return Serializer.toXML(this);
     }
 
     public static void main(String[] args) throws SQLException, ClassNotFoundException, IOException, NoSuchMethodException {

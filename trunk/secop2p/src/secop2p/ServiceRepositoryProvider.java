@@ -27,7 +27,7 @@ import secop2p.util.MessageStreamWriter;
 public final class ServiceRepositoryProvider implements ListenerCallback, MessageReceivedCallback {
 
     public static final int DEFAULT_PORT = 8000;
-    public static final int INVALIDATE_ENGINE_LAST_UPDATE_DELTA = 60*60;
+    public static final int INVALIDATE_ENGINE_LAST_UPDATE_DELTA = 60*60*1000;
     private final ServiceRepository sr;
     private int port;
     private Listener l;
