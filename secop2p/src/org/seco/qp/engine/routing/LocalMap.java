@@ -1,4 +1,4 @@
-package secop2p;
+package org.seco.qp.engine.routing;
 
 
 import java.io.IOException;
@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.Collections;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import secop2p.util.Serializer;
+import org.seco.qp.engine.routing.util.Serializer;
 
 
 public final class LocalMap implements Serializable{
