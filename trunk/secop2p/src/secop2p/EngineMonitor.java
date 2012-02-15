@@ -111,6 +111,13 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
         return filterEngines(srp.getEnginesMappedToService(s));
     }
 
+    @SuppressWarnings("ResultOfObjectAllocationIgnored")
+    public static void main(String[] args) throws IOException{
+        int port = Integer.parseInt(args[0]);
+        int alive_port = Integer.parseInt(args[1]);
+        EngineInfo ei = new EngineInfo(1, "eng1", "127.0.0.1", port, alive_port);
+        new EngineMonitor(ei);
+    }
 
 }
 

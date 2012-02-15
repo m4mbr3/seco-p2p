@@ -44,7 +44,7 @@ class Message implements Serializable {
     
 }
 
-interface Metrics extends Comparable {
+interface Metrics extends Comparable, Serializable {
 
     public int evaluate();
 
