@@ -108,11 +108,18 @@ public final class ServiceRepositoryProvider implements ListenerCallback, Messag
                     sr.addRelServiceEngine(r.getService(), r.getEngine());
             }else if(o instanceof AliveMessage){
                 AliveMessage am = (AliveMessage) o;
-                sr.updateLastAliveTimestamp(am.getFrom(), am.getTimestamp());
+                EngineInfo from = am.getFrom();
+                if(!sr.getEnginesList().contains(from))
+                    sr.addNewEngine(from);
+                sr.updateLastAliveTimestamp(from, am.getTimestamp());
             }
         } catch (SQLException ex) {
             Logger.getLogger(ServiceRepositoryProvider.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public int getPort(){
+        return port;
     }
 
 }

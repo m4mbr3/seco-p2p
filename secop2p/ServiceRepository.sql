@@ -13,7 +13,7 @@ CREATE TABLE `engines` (
 	`port` INTEGER, 
 	`desc` TEXT,
 	`last_alive_timestamp` INTEGER DEFAULT CURRENT_TIMESTAMP,
-    `alive_port` DEFAULT 121212
+    `alive_port` DEFAULT 12121
 );
 DROP TABLE IF EXISTS `service_map`;
 CREATE TABLE service_map (
@@ -23,9 +23,9 @@ CREATE TABLE service_map (
 	FOREIGN KEY (`service_id`) REFERENCES `services` (`id`) ON DELETE CASCADE,
 	FOREIGN KEY (`engine_id`) REFERENCES `engines` ( `id`) ON DELETE CASCADE
 );
-INSERT INTO `services` VALUES (1, 'serv1');
-INSERT INTO `engines` (id, name, host, port, desc) VALUES (1, 'eng1', '0.0.0.0', 1234, 'test');
-INSERT INTO `service_map` VALUES (1, 1);
+--INSERT INTO `services` VALUES (1, 'serv1');
+--INSERT INTO `engines` (id, name, host, port, desc) VALUES (1, 'eng1', '0.0.0.0', 1234, 'test');
+--INSERT INTO `service_map` VALUES (1, 1);
 DROP VIEW IF EXISTS `services_to_engines`;
 CREATE VIEW `services_to_engines` AS 
 SELECT

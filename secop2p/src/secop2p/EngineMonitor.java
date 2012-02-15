@@ -10,8 +10,10 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,6 +41,7 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
     public EngineMonitor(EngineInfo ei, ServiceRepositoryProxy srp){
         engineInfo = ei;
         this.srp = srp;
+        messages = new TreeMap<EngineInfo, Message>();
         ServerSocketChannel ssc = PortChecker.getBoundedServerSocketChannelOrNull(ei.getAlivePort());
         new Listener(ssc, this);
         new Sender(this, this);
@@ -64,6 +67,9 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
             Message m;
             try {
                 m = Serializer.deserialize(client.socket().getInputStream(), Message.class);
+                System.out.println();
+                System.out.println("Engine "+engineInfo+" has received message:\n\t"+m);
+                System.out.println();
                 messages.put(m.getEngine(), m);
             } catch (IOException ex) {
                 Logger.getLogger(EngineMonitor.class.getName()).log(Level.SEVERE, null, ex);
@@ -74,7 +80,7 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
     }
 
     public Set<InetSocketAddress> getTargetsList(Object... args) {
-        Set<InetSocketAddress> targets = new TreeSet<InetSocketAddress>();
+        Set<InetSocketAddress> targets = new HashSet<InetSocketAddress>();
         try {
             for (EngineInfo ei : srp.getEngines()) {
                 if( ei != this.engineInfo)
@@ -113,9 +119,11 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
 
     @SuppressWarnings("ResultOfObjectAllocationIgnored")
     public static void main(String[] args) throws IOException{
-        int port = Integer.parseInt(args[0]);
-        int alive_port = Integer.parseInt(args[1]);
-        EngineInfo ei = new EngineInfo(1, "eng1", "127.0.0.1", port, alive_port);
+        int i = 0;
+        int id = Integer.parseInt(args[i++]);
+        int port = Integer.parseInt(args[i++]);
+        int alive_port = Integer.parseInt(args[i++]);
+        EngineInfo ei = new EngineInfo(id, "eng"+id, "127.0.0.1", port, alive_port);
         new EngineMonitor(ei);
     }
 
