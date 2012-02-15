@@ -126,7 +126,8 @@ public class ServiceRepository {
                     rs.getInt("id"),
                     rs.getString("name"),
                     rs.getString("host"),
-                    rs.getInt("port") ) );
+                    rs.getInt("port"),
+                    rs.getInt("alive_port")) );
         }
         rs.close();
         return new TreeSet<EngineInfo>(el);
@@ -144,7 +145,8 @@ public class ServiceRepository {
                     rs.getInt("id"),
                     rs.getString("name"),
                     rs.getString("host"),
-                    rs.getInt("port") ) );
+                    rs.getInt("port"),
+                    rs.getInt("alive_port")) );
         }
         rs.close();
         return new TreeSet<EngineInfo>(el);
@@ -165,7 +167,8 @@ public class ServiceRepository {
                 rs.getInt("engine_id"),
                 rs.getString("engine_name"),
                 rs.getString("host"),
-                rs.getInt("port")
+                rs.getInt("port"),
+                rs.getInt("alive_port")
             );
             sl.add( new Relation( s, e ) );
         }
@@ -189,7 +192,8 @@ public class ServiceRepository {
                 rs.getInt("engine_id"),
                 rs.getString("engine_name"),
                 rs.getString("host"),
-                rs.getInt("port")
+                rs.getInt("port"),
+                rs.getInt("alive_port")
             );
             sl.add( new Relation( s, e ) );
         }
@@ -228,7 +232,8 @@ public class ServiceRepository {
                     rs.getInt("engine_id"),
                     rs.getString("engine_name"),
                     rs.getString("host"),
-                    rs.getInt("port")) );
+                    rs.getInt("port"),
+                    rs.getInt("alive_port")) );
         }
         rs.close();
         return new TreeSet<EngineInfo>(el);
@@ -364,7 +369,8 @@ public class ServiceRepository {
                 resultSet.getInt("id"),
                 resultSet.getString("name"),
                 resultSet.getString("host"),
-                resultSet.getInt("port")
+                resultSet.getInt("port"),
+                resultSet.getInt("alive_port")
             ) ;
         }else
             throw new java.util.NoSuchElementException();

@@ -64,7 +64,7 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
             Message m;
             try {
                 m = Serializer.deserialize(client.socket().getInputStream(), Message.class);
-                messages.put(m.from, m);
+                messages.put(m.getEngine(), m);
             } catch (IOException ex) {
                 Logger.getLogger(EngineMonitor.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ClassNotFoundException ex) {
@@ -86,10 +86,31 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
         return targets;
     }
 
-    public Set<EngineInfo> getAliveEngines(){
-        //TODO
-        return null;
+    private Set<EngineInfo> filterEngines(Set<EngineInfo> set){
+        Set<EngineInfo> engines = new TreeSet(set);
+        for(EngineInfo e : engines){
+            if(!messages.containsKey(e)){
+                srp.banEngine(e);
+                engines.remove(e);
+            } else {
+                long timeout_time = messages.get(e).getTimestamp() + ServiceRepositoryProxy.BAN_TIME;
+                if(timeout_time < System.currentTimeMillis()){
+                    srp.banEngine(e);
+                    engines.remove(e);
+                }
+            }
+        }
+        return engines;
     }
+
+    public Set<EngineInfo> getAliveEngines() throws IOException{
+        return filterEngines(srp.getEngines());
+    }
+
+    public Set<EngineInfo> getAliveEnginesMappedToService(Service s) throws IOException{
+        return filterEngines(srp.getEnginesMappedToService(s));
+    }
+
 
 }
 

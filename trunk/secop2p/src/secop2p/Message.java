@@ -14,18 +14,32 @@ import secop2p.util.Serializer;
  */
 class Message implements Serializable {
 
-    EngineInfo from;
-    Metrics m;
+    private EngineInfo from;
+    private Metrics m;
+    private long timestamp;
 
     public Message(EngineInfo from, Metrics m){
         this.from = from;
         this.m = m;
+        this.timestamp = System.currentTimeMillis();
     }
 
     @Override
     public String toString(){
         int time = (int)(System.currentTimeMillis()/1000);
         return "Engine "+from.getName()+" is alive at "+time+" with metrics "+m;
+    }
+
+    public EngineInfo getEngine(){
+        return from;
+    }
+
+    public Metrics getMetrics(){
+        return m;
+    }
+
+    public long getTimestamp(){
+        return timestamp;
     }
     
 }
