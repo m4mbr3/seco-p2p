@@ -8,11 +8,13 @@ package secop2p;
 import secop2p.util.PortChecker;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import secop2p.util.Listener;
@@ -31,7 +33,7 @@ public class AliveEngine extends EngineInfo implements ListenerCallback {
                 new HashSet<AliveEngine>()
             );
     private static final transient int start_port = 8000;
-    private final transient Set<RemoteEngine> others;
+    private final transient Set<InetSocketAddress> others;
 
     public AliveEngine(){
         this("Engine "+(aliveEngines.size()+1), "127.0.0.1", start_port+aliveEngines.size());
@@ -42,7 +44,7 @@ public class AliveEngine extends EngineInfo implements ListenerCallback {
         super(name, host, port);
         System.out.println("creating engine "+this.getName());
         others = Collections.synchronizedSet(
-            new HashSet<RemoteEngine>(aliveEngines)
+            new TreeSet<InetSocketAddress>()
         );
         try {
             synchronized(aliveEngines){
@@ -53,7 +55,6 @@ public class AliveEngine extends EngineInfo implements ListenerCallback {
             setPort( ssc.socket().getLocalPort() );
             setHost(ssc.socket().getInetAddress().getHostAddress());
             new Listener(ssc, this);
-            others.remove(this);
             Method s_cb = this.getClass().getMethod("generateMessage");
             new Sender(others, s_cb, this);
             for(AliveEngine ae : aliveEngines){
