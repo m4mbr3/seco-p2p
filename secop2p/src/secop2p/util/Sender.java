@@ -6,11 +6,8 @@
 package secop2p.util;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.Collections;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -86,12 +83,12 @@ public class Sender {
         t.cancel();
         t.purge();
     }
-}
+    
+    public interface MessageGenerator {
+        public byte[] generateMessage(Object... args);
+    }
 
-interface MessageGenerator {
-    public byte[] generateMessage(Object... args);
-}
-
-interface TargetGenerator {
-    public Set<InetSocketAddress> getTargetsList(Object... args);
+    public interface TargetGenerator {
+        public Set<InetSocketAddress> getTargetsList(Object... args);
+    }
 }

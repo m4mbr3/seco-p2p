@@ -155,8 +155,8 @@ public class ServiceRepositoryProxy implements MessageReceivedCallback {
     }
 
     public static void main(String[] args) throws IOException{
-        /*
-        ServiceRepositoryProxy srp = new ServiceRepositoryProxy("127.0.0.1",8000);
+        /*EngineInfo
+        ServiceRepositoryProxy srp = new ServiceRepositoryProxy(ei,"127.0.0.1",8000);
         for(Service s : srp.getServices())
             for(EngineInfo e : srp.getEnginesMappedToService(s))
                 System.out.println(e.getName()+" supports "+s.getName());
