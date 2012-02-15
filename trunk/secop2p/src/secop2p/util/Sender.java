@@ -10,8 +10,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Set;
 import java.util.Timer;
@@ -66,35 +64,25 @@ public class Sender {
 
         @Override
         public void run() {
-            byte[] msg = "I'm alive".getBytes();
+            byte[] msg;
             try {
                 msg = (byte[]) callback.invoke(callee);
+                for(InetSocketAddress isa : targets.toArray(new InetSocketAddress[0])){
+                    Socket s = new Socket();
+                    s.connect(isa);
+                    s.getOutputStream().write(msg);
+                    s.getOutputStream().close();
+                    s.getInputStream().close();
+                    s.close();
+                }
             } catch (IllegalAccessException ex) {
                 Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IllegalArgumentException ex) {
                 Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
             } catch (InvocationTargetException ex) {
                 Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            for(InetSocketAddress isa : targets.toArray(new InetSocketAddress[0])){
-                try {
-                    Socket s = new Socket();
-                    s.connect(isa);
-                    s.getOutputStream().write(msg);
-                    try{
-                        s.getOutputStream().close();
-                    }catch(SocketException ex){}
-                    try{
-                        s.getInputStream().close();
-                    }catch(SocketException ex){}
-                    try{
-                        s.close();
-                    }catch(SocketException ex){}
-                } catch (UnknownHostException ex) {
-                    Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IOException ex) {
-                    Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
-                }
+            } catch (IOException ex) {
+                Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 

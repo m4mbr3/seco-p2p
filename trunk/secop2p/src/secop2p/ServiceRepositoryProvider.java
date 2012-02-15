@@ -13,8 +13,6 @@ import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 import secop2p.util.Listener;
 import secop2p.util.ListenerCallback;
@@ -28,7 +26,8 @@ import secop2p.util.MessageStreamWriter;
  */
 public final class ServiceRepositoryProvider implements ListenerCallback, MessageReceivedCallback {
 
-    private static final int DEFAULT_PORT = 8000;
+    public static final int DEFAULT_PORT = 8000;
+    public static final int INVALIDATE_ENGINE_LAST_UPDATE_DELTA = 60*60;
     private final ServiceRepository sr;
     private int port;
     private Listener l;
@@ -63,15 +62,10 @@ public final class ServiceRepositoryProvider implements ListenerCallback, Messag
     }
 
     public LocalMap getLocalMap() throws SQLException {
-        Set<EngineInfo> engines = new HashSet<EngineInfo>( Arrays.asList(
-            sr.getEnginesList()
-        ) );
-        Set<Service> services = new HashSet<Service>( Arrays.asList(
-            sr.getServicesList()
-        ) );
-        Set<Relation> relations = new HashSet<Relation>( Arrays.asList(
-            sr.getRelationList()
-        ) );
+        long timestamp = System.currentTimeMillis() - INVALIDATE_ENGINE_LAST_UPDATE_DELTA;
+        Set<EngineInfo> engines = sr.getAliveEngines(timestamp);
+        Set<Service> services = sr.getServicesList();
+        Set<Relation> relations = sr.getAliveRelationList(timestamp);
         return new LocalMap(engines, services, relations);
     }
 
@@ -102,16 +96,19 @@ public final class ServiceRepositoryProvider implements ListenerCallback, Messag
         try {
             if(o instanceof EngineInfo){
                 EngineInfo e = (EngineInfo) o;
-                if(!Arrays.asList(sr.getEnginesList()).contains(e))
+                if(!sr.getEnginesList().contains(e))
                     sr.addNewEngine(e);
             } else if(o instanceof Service){
                 Service s = (Service)o;
-                if(!Arrays.asList(sr.getServicesList()).contains(s))
+                if(!sr.getServicesList().contains(s))
                     sr.addNewService(s);
             } else if(o instanceof Relation){
                 Relation r = (Relation) o;
-                if(!Arrays.asList(sr.getRelationList()).contains(r))
+                if(!sr.getRelationList().contains(r))
                     sr.addRelServiceEngine(r.getService(), r.getEngine());
+            }else if(o instanceof AliveMessage){
+                AliveMessage am = (AliveMessage) o;
+                sr.updateLastAliveTimestamp(am.getFrom(), am.getTimestamp());
             }
         } catch (SQLException ex) {
             Logger.getLogger(ServiceRepositoryProvider.class.getName()).log(Level.SEVERE, null, ex);

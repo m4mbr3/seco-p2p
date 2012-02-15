@@ -12,6 +12,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  *
@@ -36,6 +38,9 @@ public class ServiceRepository {
     static private PreparedStatement delRelation;
     static private PreparedStatement selectEngineById;
     static private PreparedStatement selectServiceById;
+    static private PreparedStatement updateLastAliveTimestamp;
+    static private PreparedStatement selectAliveEngines;
+    static private PreparedStatement selectAliveRelations;
 
     /*
      * Default constructor, tries to connect to "ServiceRepository.sqlite" 
@@ -79,17 +84,22 @@ public class ServiceRepository {
                 "DELETE FROM service_map WHERE engine_id = ?");
         delRelation = conn.prepareStatement(
                 "DELETE FROM service_map WHERE engine_id = ? AND service_id = ?");
-        //Nguyen
         selectEngineById = conn.prepareStatement(
                 "SELECT * FROM engines WHERE id = ?");
         selectServiceById = conn.prepareStatement(
                 "SELECT * FROM services WHERE id = ?");
+        updateLastAliveTimestamp = conn.prepareStatement(
+                "UPDATE engines SET last_alive_timestamp = ? WHERE id = ?");
+        selectAliveEngines = conn.prepareStatement(
+                "SELECT * FROM engines WHERE last_alive_timestamp > ?");
+        selectAliveRelations = conn.prepareStatement(
+                "SELECT * FROM services_to_engines WHERE last_alive_timestamp > ?");
        }
 
     /*
      * Function to get list of ALL services
      */
-    public Service[] getServicesList() throws SQLException{
+    public Set<Service> getServicesList() throws SQLException{
         ResultSet rs;
         synchronized(conn){
             rs = selectServicesList.executeQuery();
@@ -99,30 +109,48 @@ public class ServiceRepository {
             sl.add( new Service( rs.getInt("id"), rs.getString("name") ) );
         }
         rs.close();
-        return sl.toArray(new Service[0]);
+        return new TreeSet<Service>(sl);
     }
 
     /*
      *  Function to get list of ALL engines
      */
-    public EngineInfo[] getEnginesList() throws SQLException{
+    public Set<EngineInfo> getEnginesList() throws SQLException{
         ResultSet rs;
         synchronized(conn){
             rs = selectEnginesList.executeQuery();
         }
-        List<EngineInfo> sl = new ArrayList<EngineInfo>();
+        List<EngineInfo> el = new ArrayList<EngineInfo>();
         while(rs.next()){
-            sl.add( new EngineInfo(
+            el.add( new EngineInfo(
                     rs.getInt("id"),
                     rs.getString("name"),
                     rs.getString("host"),
                     rs.getInt("port") ) );
         }
         rs.close();
-        return sl.toArray(new EngineInfo[0]);
+        return new TreeSet<EngineInfo>(el);
+    }
+
+    public Set<EngineInfo> getAliveEngines(long lastAliveTimestamp) throws SQLException{
+        ResultSet rs;
+        synchronized(conn){
+            selectAliveEngines.setLong(1, lastAliveTimestamp);
+            rs = selectAliveEngines.executeQuery();
+        }
+        List<EngineInfo> el = new ArrayList<EngineInfo>();
+        while(rs.next()){
+            el.add( new EngineInfo(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getString("host"),
+                    rs.getInt("port") ) );
+        }
+        rs.close();
+        return new TreeSet<EngineInfo>(el);
     }
     
-    public  Relation[] getRelationList() throws SQLException{
+    public  Set<Relation> getRelationList() throws SQLException{
         ResultSet rs;
         synchronized(conn){
             rs = selectRelationList.executeQuery();
@@ -142,13 +170,37 @@ public class ServiceRepository {
             sl.add( new Relation( s, e ) );
         }
         rs.close();
-        return sl.toArray(new Relation[0]);
+        return new TreeSet<Relation>(sl);
+    }
+
+    public  Set<Relation> getAliveRelationList(long timestamp) throws SQLException{
+        ResultSet rs;
+        synchronized(conn){
+            selectAliveRelations.setLong(1, timestamp);
+            rs = selectAliveRelations.executeQuery();
+        }
+        List<Relation> sl = new ArrayList<Relation>();
+        while(rs.next()){
+            Service s = new Service(
+                rs.getInt("service_id"),
+                rs.getString("service_name")
+            );
+            EngineInfo e = new EngineInfo(
+                rs.getInt("engine_id"),
+                rs.getString("engine_name"),
+                rs.getString("host"),
+                rs.getInt("port")
+            );
+            sl.add( new Relation( s, e ) );
+        }
+        rs.close();
+        return new TreeSet<Relation>(sl);
     }
 
     /*
      * Function to get the Services of an engine searched by ID
      */
-    public Service[] getServicesMappedToEngine(EngineInfo eng) throws SQLException{
+    public Set<Service> getServicesMappedToEngine(EngineInfo eng) throws SQLException{
         ResultSet rs;
         synchronized(conn){
             selectEngineServices.setInt(1, eng.getId());
@@ -159,12 +211,12 @@ public class ServiceRepository {
             sl.add( new Service( rs.getInt("service_id"), rs.getString("service_name") ) );
         }
         rs.close();
-        return sl.toArray(new Service[0]);
+        return new TreeSet<Service>(sl);
     }
     /*
      * Function to get the Engines that provide a specific service searched by ID
      */
-    public EngineInfo[] getEnginesMappedToService(Service ser) throws SQLException{
+    public Set<EngineInfo> getEnginesMappedToService(Service ser) throws SQLException{
         ResultSet rs;
         synchronized(conn){
             selectServiceEngines.setInt(1, ser.getId());
@@ -179,7 +231,7 @@ public class ServiceRepository {
                     rs.getInt("port")) );
         }
         rs.close();
-        return el.toArray(new EngineInfo[0]);
+        return new TreeSet<EngineInfo>(el);
     }
     /*
      * Function to add a new type of Service into list
@@ -326,8 +378,8 @@ public class ServiceRepository {
     public Service getServiceById(int serviceId) throws SQLException{
         ResultSet resultSet;
         Service service = null;
-        selectServiceById.setInt(1, serviceId);
         synchronized(conn){
+            selectServiceById.setInt(1, serviceId);
             resultSet=selectServiceById.executeQuery();
         }
         if(resultSet.next()){
@@ -339,6 +391,15 @@ public class ServiceRepository {
             throw new java.util.NoSuchElementException();
         resultSet.close();
         return  service;
+    }
+
+    void updateLastAliveTimestamp(EngineInfo from, long timestamp) throws SQLException {
+        //TODO check id is valid
+        synchronized(conn){
+            updateLastAliveTimestamp.setLong(1, timestamp);
+            updateLastAliveTimestamp.setInt(2, from.getId());
+            updateLastAliveTimestamp.executeUpdate();
+        }
     }
     
 }
