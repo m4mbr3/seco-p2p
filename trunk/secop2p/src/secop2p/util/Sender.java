@@ -27,20 +27,18 @@ public class Sender {
     public static int DEFAULT_DELAY = 500;
     private Timer t;
     private MyTask mt;
-    private Set<InetSocketAddress> targets;
-    private Method callback;
-    private Object callee;
+    private TargetGenerator targetGenerator;
+    private MessageGenerator messageGenerator;
 
-    public Sender(Set<InetSocketAddress> targets, Method callback, Object callee){
-        this(targets, callback, callee, DEFAULT_INTERVAL);
+    public Sender(TargetGenerator tg, MessageGenerator mg){
+        this(tg, mg, DEFAULT_INTERVAL);
     }
 
-    public Sender(Set<InetSocketAddress> targets, Method callback, Object callee, int interval){
+    public Sender(TargetGenerator tg, MessageGenerator mg, int interval){
         t = new Timer();
         mt = new MyTask();
-        this.targets = Collections.synchronizedSet(targets);
-        this.callback = callback;
-        this.callee = callee;
+        this.targetGenerator = tg;
+        this.messageGenerator = mg;
         if(interval >= 0){
             this.privateStart(interval);
         }
@@ -66,8 +64,9 @@ public class Sender {
         public void run() {
             byte[] msg;
             try {
-                msg = (byte[]) callback.invoke(callee);
-                for(InetSocketAddress isa : targets.toArray(new InetSocketAddress[0])){
+                msg = messageGenerator.generateMessage();
+                Set<InetSocketAddress> targets = targetGenerator.getTargetsList();
+                for(InetSocketAddress isa : targets){
                     Socket s = new Socket();
                     s.connect(isa);
                     s.getOutputStream().write(msg);
@@ -75,12 +74,6 @@ public class Sender {
                     s.getInputStream().close();
                     s.close();
                 }
-            } catch (IllegalAccessException ex) {
-                Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IllegalArgumentException ex) {
-                Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InvocationTargetException ex) {
-                Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
                 Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -93,4 +86,12 @@ public class Sender {
         t.cancel();
         t.purge();
     }
+}
+
+interface MessageGenerator {
+    public byte[] generateMessage(Object... args);
+}
+
+interface TargetGenerator {
+    public Set<InetSocketAddress> getTargetsList(Object... args);
 }
