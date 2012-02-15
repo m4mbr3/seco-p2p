@@ -94,6 +94,16 @@ public class EngineInfo implements Serializable, RemoteEngine, Comparable {
         }
     }
 
+    public InetSocketAddress getAliveSocketAddress() {
+        try {
+            InetAddress ia = InetAddress.getByName(host);
+            return new InetSocketAddress(ia, alivePort);
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(EngineInfo.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
+    }
+
     public int compareTo(Object t) {
         if(t instanceof EngineInfo){
             EngineInfo e = (EngineInfo) t;
