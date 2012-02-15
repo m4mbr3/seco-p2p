@@ -1,4 +1,4 @@
-package secop2p;
+package org.seco.qp.engine.routing;
 
 import java.io.Serializable;
 import java.net.InetAddress;
@@ -6,14 +6,14 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import secop2p.util.Serializer;
+import org.seco.qp.engine.routing.util.Serializer;
 
 /**
  * @author eros
  *
  * Dummy class that represents an engine
  */
-public class EngineInfo implements Serializable, RemoteEngine, Comparable {
+public class EngineInfo implements Serializable, Comparable {
 
     private int id;
     private String name;

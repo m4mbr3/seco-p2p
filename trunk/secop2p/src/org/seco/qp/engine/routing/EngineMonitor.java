@@ -3,9 +3,9 @@
  * and open the template in the editor.
  */
 
-package secop2p;
+package org.seco.qp.engine.routing;
 
-import secop2p.util.PortChecker;
+import org.seco.qp.engine.routing.util.PortChecker;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
@@ -17,10 +17,10 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import secop2p.util.Listener;
-import secop2p.util.ListenerCallback;
-import secop2p.util.Sender;
-import secop2p.util.Serializer;
+import org.seco.qp.engine.routing.util.Listener;
+import org.seco.qp.engine.routing.util.ListenerCallback;
+import org.seco.qp.engine.routing.util.Sender;
+import org.seco.qp.engine.routing.util.Serializer;
 
 /**
  *

@@ -1,7 +1,7 @@
-package secop2p;
+package org.seco.qp.engine.routing;
 
 import java.io.Serializable;
-import secop2p.util.Serializer;
+import org.seco.qp.engine.routing.util.Serializer;
 
 /**
  * @author eros

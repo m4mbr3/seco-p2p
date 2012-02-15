@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package secop2p;
+package org.seco.qp.engine.routing;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -14,9 +14,9 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import secop2p.util.MessageReceivedCallback;
-import secop2p.util.MessageStreamReader;
-import secop2p.util.MessageStreamWriter;
+import org.seco.qp.engine.routing.util.MessageReceivedCallback;
+import org.seco.qp.engine.routing.util.MessageStreamReader;
+import org.seco.qp.engine.routing.util.MessageStreamWriter;
 
 /**
  *

@@ -3,14 +3,14 @@
  * and open the template in the editor.
  */
 
-package secop2p.util;
+package org.seco.qp.engine.routing.util;
+
+import java.io.Serializable;
 
 /**
  *
  * @author eros
  */
-public interface MessageReceivedCallback {
-
-    public void messageReceived(Object o);
+public class MessageStreamEnd implements Serializable {
 
 }

@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package secop2p;
+package org.seco.qp.engine.routing;
 
 import java.sql.SQLException;
 import java.util.Scanner;

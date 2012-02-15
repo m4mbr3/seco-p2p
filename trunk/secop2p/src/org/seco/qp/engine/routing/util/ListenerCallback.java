@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package secop2p.util;
+package org.seco.qp.engine.routing.util;
 
 import java.nio.channels.SocketChannel;
 
