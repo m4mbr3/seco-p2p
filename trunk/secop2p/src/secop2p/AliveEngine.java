@@ -7,12 +7,9 @@ package secop2p;
 
 import secop2p.util.PortChecker;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
@@ -26,59 +23,33 @@ import secop2p.util.Serializer;
  *
  * @author eros
  */
-public class AliveEngine extends EngineInfo implements ListenerCallback {
-    
-    private final static transient Set<AliveEngine> aliveEngines =
-            Collections.synchronizedSet(
-                new HashSet<AliveEngine>()
-            );
-    private static final transient int start_port = 8000;
-    private final transient Set<InetSocketAddress> others;
+public class AliveEngine implements ListenerCallback, Sender.MessageGenerator, Sender.TargetGenerator {
 
-    public AliveEngine(){
-        this("Engine "+(aliveEngines.size()+1), "127.0.0.1", start_port+aliveEngines.size());
+    private final EngineInfo engineInfo;
+    private final ServiceRepositoryProxy srp;
+
+    public AliveEngine(EngineInfo ei) throws IOException{
+        this(ei, new ServiceRepositoryProxy(ei));
     }
 
-    @SuppressWarnings({"ResultOfObjectAllocationIgnored", "LeakingThisInConstructor"})
-    public AliveEngine(String name, String host, int port){
-        super(name, host, port);
-        System.out.println("creating engine "+this.getName());
-        others = Collections.synchronizedSet(
-            new TreeSet<InetSocketAddress>()
-        );
-        try {
-            synchronized(aliveEngines){
-                aliveEngines.add(this);
-            }
-            Method l_cb = this.getClass().getMethod("receivedMessage", new byte[0].getClass());
-            ServerSocketChannel ssc = PortChecker.getBoundedServerSocketChannel();
-            setPort( ssc.socket().getLocalPort() );
-            setHost(ssc.socket().getInetAddress().getHostAddress());
-            new Listener(ssc, this);
-            Method s_cb = this.getClass().getMethod("generateMessage");
-            new Sender(others, s_cb, this);
-            for(AliveEngine ae : aliveEngines){
-                if( ae != this)
-                    synchronized(ae.others){
-                        ae.others.add(this);
-                    }
-            }
-        } catch (NoSuchMethodException ex) {
-            Logger.getLogger(AliveEngine.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SecurityException ex) {
-            Logger.getLogger(AliveEngine.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    @SuppressWarnings("ResultOfObjectAllocationIgnored")
+    public AliveEngine(EngineInfo ei, ServiceRepositoryProxy srp){
+        engineInfo = ei;
+        this.srp = srp;
+        ServerSocketChannel ssc = PortChecker.getBoundedServerSocketChannelOrNull(ei.getAlivePort());
+        new Listener(ssc, this);
+        new Sender(this, this);
     }
 
-    public byte[] generateMessage() throws IOException{
+    public byte[] generateMessage(Object... args){
         //return this.getName()+" - I'm alive at "+(int)(System.currentTimeMillis()/1000);
         Metrics m = new LocalMetrics(0.5);
         try{
-            byte[] msg = Serializer.serialize(new Message(this, m));
+            byte[] msg = Serializer.serialize(new Message(this.engineInfo, m));
             return msg;
         }catch(IOException ex){
             Logger.getLogger(AliveEngine.class.getName()).log(Level.SEVERE, null, ex);
-            throw ex;
+            return null;
         }catch(Exception ex){
             Logger.getLogger(AliveEngine.class.getName()).log(Level.SEVERE, null, ex);
             return null;
@@ -97,6 +68,19 @@ public class AliveEngine extends EngineInfo implements ListenerCallback {
                 Logger.getLogger(AliveEngine.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+    }
+
+    public Set<InetSocketAddress> getTargetsList(Object... args) {
+        Set<InetSocketAddress> targets = new TreeSet<InetSocketAddress>();
+        try {
+            for (EngineInfo ei : srp.getEngines()) {
+                if( ei != this.engineInfo)
+                    targets.add(ei.getSocketAddress());
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(AliveEngine.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return targets;
     }
 
 }

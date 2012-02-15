@@ -12,7 +12,8 @@ CREATE TABLE `engines` (
 	`host` TEXT, 
 	`port` INTEGER, 
 	`desc` TEXT,
-	`last_alive_timestamp` INTEGER DEFAULT CURRENT_TIMESTAMP
+	`last_alive_timestamp` INTEGER DEFAULT CURRENT_TIMESTAMP,
+    `alive_port` DEFAULT 121212
 );
 DROP TABLE IF EXISTS `service_map`;
 CREATE TABLE service_map (

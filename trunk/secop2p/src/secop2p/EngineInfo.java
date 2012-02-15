@@ -19,12 +19,14 @@ public class EngineInfo implements Serializable, RemoteEngine, Comparable {
     private String name;
     private String host;
     private int port;
+    private int alivePort;
 
-    public EngineInfo(int id, String name, String host, int port){
+    public EngineInfo(int id, String name, String host, int port, int aPort){
         this.id = id;
         this.name=name;
         this.host=host;
         this.port=port;
+        this.alivePort = aPort;
     }
 
     public EngineInfo(String name, String host, int port){
@@ -53,6 +55,10 @@ public class EngineInfo implements Serializable, RemoteEngine, Comparable {
         this.port = port;
     }
 
+    public void setAlivePort(int port) {
+        this.alivePort = port;
+    }
+
     public String getName(){
         return name;
     }
@@ -67,6 +73,10 @@ public class EngineInfo implements Serializable, RemoteEngine, Comparable {
 
     public int getPort(){
         return port;
+    }
+
+    public int getAlivePort(){
+        return alivePort;
     }
 
     @Override
