@@ -1,0 +1,48 @@
+PREREQUISITES:
+
+- of course the SeCo source code
+
+- missing dependencies: project -> libraries -> add dependency (with netbeans)
+
+- MaxFetches & MaxTuples are not present in the modifiers that we have access to;
+  In order to have them, I've added these two lines in (org.seco.qp.server.engine.)EngineService.java:
+         modifiers.setMaxFetches(maxFetches);
+         modifiers.setMaxTuples(maxTuples);
+  inside the "invoke" method.
+  
+- Add the following annotation to the Results constructor in Invoker.java
+    @ConstructorProperties(value = { "tuples", "IOOperations", "eof" })
+    public Results(......
+
+- In seco-qp-server/src/main/resources/org/...server/context.xml:
+  add:
+	<!-- The invoker of remote endpoints -->
+   <bean id="invokers.remote" class="org.seco.qp.engine.invokers.RemoteInvoker">
+      <constructor-arg ref="server.scheduler" />
+      <constructor-arg ref="server.httpClient" />
+   </bean>
+  and also modify invokers.composite:
+   <!-- The composite invoker applying chain of responsibility pattern -->
+   <bean id="invokers.composite" class="org.seco.qp.engine.invokers.CompositeInvoker">
+      <constructor-arg>
+         <list>
+            <ref bean="invokers.qep" />
+            <ref bean="invokers.custom" />
+            <ref bean="invokers.rdb" />
+            <ref bean="invokers.yql" />
+            <ref bean="invokers.googlebase" />
+            <ref bean="invokers.sparql" />
+            <ref bean="invokers.seco" />
+            <ref bean="invokers.remote" />
+         </list>
+      </constructor-arg>
+   </bean>
+  
+GENERAL TIP:
+	I've cofigured CompositeInvoker to read from a customizable file:
+	normally it's seco-qp-server/src/main/resources/org/...server/default.properties
+	but you can copy it somewhere else (to be able to run multiple instances)
+	and set it with an enviromental variable SECO_CONF which contains the path to the conf file
+	
+	To run the engine I also prepared two scripts one for linux and one for windows (this one needs to be tested)
+	respectively command and command.bat try to use them! :D
