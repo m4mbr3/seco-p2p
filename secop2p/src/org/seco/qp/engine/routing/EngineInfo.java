@@ -104,6 +104,31 @@ public class EngineInfo implements Serializable, Comparable {
         }
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 43 * hash + this.id;
+        hash = 43 * hash + (this.name != null ? this.name.hashCode() : 0);
+        hash = 43 * hash + (this.host != null ? this.host.hashCode() : 0);
+        hash = 43 * hash + this.port;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if(o instanceof EngineInfo){
+            EngineInfo ei = (EngineInfo) o;
+            if( ei.host.equals(this.host) && ei.port == this.port )
+                return true;
+            else if( ei.name.equals(this.name))
+                return true;
+            else if( ei.id == this.id )
+                return true;
+        }
+        return false;
+    }
+
+    @Override
     public int compareTo(Object t) {
         if(t instanceof EngineInfo){
             EngineInfo e = (EngineInfo) t;

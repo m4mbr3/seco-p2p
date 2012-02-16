@@ -48,6 +48,26 @@ public class Service implements Serializable, Comparable {
         return Serializer.toXML(this);
     }
 
+    @Override
+    public boolean equals(Object o){
+        if(o instanceof Service){
+            Service s = (Service) o;
+            if(s.id == this.id)
+                return true;
+            if(s.name.equals(this.name))
+                return true;
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 89 * hash + this.id;
+        hash = 89 * hash + (this.name != null ? this.name.hashCode() : 0);
+        return hash;
+    }
+
     public int compareTo(Object t) {
         if(t instanceof Service){
             Service s = (Service) t;

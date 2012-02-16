@@ -24,7 +24,7 @@ import org.seco.qp.engine.routing.util.MessageStreamWriter;
  */
 public class ServiceRepositoryProxy implements MessageReceivedCallback {
 
-    public static int DEFAULT_INTERVAL = 60;//*60*1000;
+    public static int DEFAULT_INTERVAL = 60*1000;//*60*1000;
     public static long BAN_TIME = 5*60*1000;
 
     private final EngineInfo thisEngine;
@@ -63,7 +63,7 @@ public class ServiceRepositoryProxy implements MessageReceivedCallback {
         final SocketChannel sc = SocketChannel.open(repoAddr);
         final MessageStreamWriter msw = new MessageStreamWriter(sc);
         //TODO get real metrics
-        Metrics m = new LocalMetrics(0.5);
+        Metrics m = new LocalMetrics();
         msw.writeMessage(new AliveMessage(thisEngine, m));
         msw.close();
         final MessageStreamReader msr = new MessageStreamReader(sc, this);
@@ -125,7 +125,7 @@ public class ServiceRepositoryProxy implements MessageReceivedCallback {
             if(filtering)
                 return filterBanned(servMap.get(s));
             else
-                servMap.get(s);
+                return servMap.get(s);
         }
         return null;
     }
@@ -135,6 +135,11 @@ public class ServiceRepositoryProxy implements MessageReceivedCallback {
             bannedEngines.remove(ei);
         System.out.println("Banning engine: "+ei);
         bannedEngines.put(ei, System.currentTimeMillis()+BAN_TIME);
+    }
+
+    public void removeBanEngine(EngineInfo ei){
+        if(bannedEngines.containsKey(ei))
+            bannedEngines.remove(ei);
     }
 
     private Set<EngineInfo> filterBanned(final Set<EngineInfo> list){
@@ -150,6 +155,8 @@ public class ServiceRepositoryProxy implements MessageReceivedCallback {
 
     public void messageReceived(Object o) {
         if(o instanceof LocalMap){
+            if(o == null)
+                return;
             this.map = (LocalMap) o;
             lastUpdateTime = System.currentTimeMillis();
         }
