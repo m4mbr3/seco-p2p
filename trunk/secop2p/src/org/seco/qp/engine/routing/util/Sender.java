@@ -6,6 +6,7 @@
 package org.seco.qp.engine.routing.util;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Set;
@@ -26,16 +27,22 @@ public class Sender {
     private MyTask mt;
     private TargetGenerator targetGenerator;
     private MessageGenerator messageGenerator;
+    private ConnectionFailedCallback connFailedCB;
 
     public Sender(TargetGenerator tg, MessageGenerator mg){
-        this(tg, mg, DEFAULT_INTERVAL);
+        this(tg, mg, null, DEFAULT_INTERVAL);
     }
 
-    public Sender(TargetGenerator tg, MessageGenerator mg, int interval){
+    public Sender(TargetGenerator tg, MessageGenerator mg, ConnectionFailedCallback cfcb){
+        this(tg, mg, cfcb, DEFAULT_INTERVAL);
+    }
+
+    public Sender(TargetGenerator tg, MessageGenerator mg, ConnectionFailedCallback cfcb, int interval){
         t = new Timer();
         mt = new MyTask();
         this.targetGenerator = tg;
         this.messageGenerator = mg;
+        this.connFailedCB = cfcb;
         if(interval >= 0){
             this.privateStart(interval);
         }
@@ -64,16 +71,21 @@ public class Sender {
                 msg = messageGenerator.generateMessage();
                 Set<InetSocketAddress> targets = targetGenerator.getTargetsList();
                 for(InetSocketAddress isa : targets){
-                    Socket s = new Socket();
-                    s.connect(isa);
-                    s.getOutputStream().write(msg);
-                    s.getOutputStream().close();
                     try{
-                        s.getInputStream().close();
-                    }catch(IOException e){}
-                    try{
-                        s.close();
-                    }catch(IOException e){}
+                        Socket s = new Socket();
+                        s.connect(isa);
+                        s.getOutputStream().write(msg);
+                        s.getOutputStream().close();
+                        try{
+                            s.getInputStream().close();
+                        }catch(IOException e){}
+                        try{
+                            s.close();
+                        }catch(IOException e){}
+                    }catch(ConnectException e){
+                        if(connFailedCB != null)
+                            connFailedCB.connectionFailed(isa);
+                    }
                 }
             } catch (IOException ex) {
                 Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
@@ -95,4 +107,9 @@ public class Sender {
     public interface TargetGenerator {
         public Set<InetSocketAddress> getTargetsList(Object... args);
     }
+
+    public interface ConnectionFailedCallback {
+        public void connectionFailed(InetSocketAddress addr);
+    }
+
 }

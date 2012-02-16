@@ -26,7 +26,8 @@ import org.seco.qp.engine.routing.util.Serializer;
  *
  * @author eros
  */
-public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator, Sender.TargetGenerator {
+public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator, 
+        Sender.TargetGenerator, Sender.ConnectionFailedCallback {
 
     private final EngineInfo engineInfo;
     private final ServiceRepositoryProxy srp;
@@ -49,7 +50,7 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
 
     public byte[] generateMessage(Object... args){
         //return this.getName()+" - I'm alive at "+(int)(System.currentTimeMillis()/1000);
-        Metrics m = new LocalMetrics(0.5);
+        Metrics m = new LocalMetrics();
         try{
             byte[] msg = Serializer.serialize(new Message(this.engineInfo, m));
             return msg;
@@ -70,7 +71,12 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
                 System.out.println();
                 System.out.println("Engine "+engineInfo+" has received message:\n\t"+m);
                 System.out.println();
-                messages.put(m.getEngine(), m);
+                synchronized(messages){
+                    if(messages.containsKey(m.getEngine()))
+                        messages.remove(m.getEngine());
+                    messages.put(m.getEngine(), m);
+                }
+                srp.removeBanEngine(m.getEngine());
             } catch (IOException ex) {
                 Logger.getLogger(EngineMonitor.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ClassNotFoundException ex) {
@@ -83,7 +89,7 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
         Set<InetSocketAddress> targets = new HashSet<InetSocketAddress>();
         try {
             for (EngineInfo ei : srp.getEngines()) {
-                if( ei.compareTo(this.engineInfo) != 0)
+                if( ! ei.equals(engineInfo) )
                     targets.add(ei.getAliveSocketAddress());
             }
         } catch (IOException ex) {
@@ -96,7 +102,7 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
         Set<EngineInfo> engines = new TreeSet(set);
         for(EngineInfo e : engines){
             if(!messages.containsKey(e)){
-                srp.banEngine(e);
+                //srp.banEngine(e);
                 engines.remove(e);
             } else {
                 long timeout_time = messages.get(e).getTimestamp() + ServiceRepositoryProxy.BAN_TIME;
@@ -144,6 +150,23 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
             }
         }
         return best;
+    }
+
+    @Override
+    public void connectionFailed(InetSocketAddress addr) {
+        try {
+            String host = addr.getHostName();
+            int port = addr.getPort();
+            for (EngineInfo ei : srp.getEngines()) {
+                if (ei.getHost().equals(host)) {
+                    if (ei.getPort() == port) {
+                        srp.banEngine(ei);
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(EngineMonitor.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
 }

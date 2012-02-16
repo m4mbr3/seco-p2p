@@ -6,6 +6,8 @@
 package org.seco.qp.engine.routing;
 
 import java.io.Serializable;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
 import org.seco.qp.engine.routing.util.Serializer;
 
 /**
@@ -54,6 +56,11 @@ final class LocalMetrics implements Metrics {
 
     public static int SCALE_FACTOR = 5000;
     double load;
+
+    public LocalMetrics(){
+        OperatingSystemMXBean os = ManagementFactory.getOperatingSystemMXBean();
+        this.load = os.getSystemLoadAverage() / os.getAvailableProcessors();
+    }
 
     /**
      * @param load Should be in range 0 to 1
