@@ -31,7 +31,7 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
 
     private final EngineInfo engineInfo;
     private final ServiceRepositoryProxy srp;
-    private Map<EngineInfo, Message> messages;
+    private final Map<EngineInfo, Message> messages;
 
 
     public EngineMonitor(EngineInfo ei) throws IOException{
@@ -45,9 +45,10 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
         messages = new TreeMap<EngineInfo, Message>();
         ServerSocketChannel ssc = PortChecker.getBoundedServerSocketChannelOrNull(ei.getAlivePort());
         new Listener(ssc, this);
-        new Sender(this, this);
+        new Sender(this, this, this);
     }
 
+    @Override
     public byte[] generateMessage(Object... args){
         //return this.getName()+" - I'm alive at "+(int)(System.currentTimeMillis()/1000);
         Metrics m = new LocalMetrics();
@@ -63,13 +64,14 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
         }
     }
 
+    @Override
     public void handleRequest(SocketChannel client) {
         synchronized(System.out){
             Message m;
             try {
                 m = Serializer.deserialize(client.socket().getInputStream(), Message.class);
                 System.out.println();
-                System.out.println("Engine "+engineInfo+" has received message:\n\t"+m);
+                System.out.println("Engine "+engineInfo.getName()+" has received message:\n\t"+m);
                 System.out.println();
                 synchronized(messages){
                     if(messages.containsKey(m.getEngine()))
@@ -85,6 +87,7 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
         }
     }
 
+    @Override
     public Set<InetSocketAddress> getTargetsList(Object... args) {
         Set<InetSocketAddress> targets = new HashSet<InetSocketAddress>();
         try {
@@ -155,13 +158,13 @@ public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator,
     @Override
     public void connectionFailed(InetSocketAddress addr) {
         try {
-            String host = addr.getHostName();
-            int port = addr.getPort();
+            System.out.println("Banning engine corresponding to address: "+addr);
             for (EngineInfo ei : srp.getEngines()) {
-                if (ei.getHost().equals(host)) {
-                    if (ei.getPort() == port) {
-                        srp.banEngine(ei);
-                    }
+                InetSocketAddress isa = ei.getAliveSocketAddress();
+                if (isa.equals(addr)) {
+                    srp.banEngine(ei);
+                    //System.out.println("Banned engine "+ei.getName());
+                    //Logger.getLogger(this.getClass().getName()).info("Banned engine "+ei.getName());
                 }
             }
         } catch (IOException ex) {
