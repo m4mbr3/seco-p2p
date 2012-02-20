@@ -16,7 +16,7 @@ PREREQUISITES:
 
 - In seco-qp-server/src/main/resources/org/...server/context.xml:
   add:
-	<!-- The invoker of remote endpoints -->
+   <!-- The invoker of remote endpoints -->
    <bean id="invokers.remote" class="org.seco.qp.engine.invokers.RemoteInvoker">
       <constructor-arg ref="server.scheduler" />
       <constructor-arg ref="server.httpClient" />

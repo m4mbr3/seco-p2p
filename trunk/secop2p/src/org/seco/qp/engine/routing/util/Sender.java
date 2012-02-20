@@ -21,8 +21,9 @@ import java.util.logging.Logger;
  */
 public class Sender {
 
-    public static int DEFAULT_INTERVAL = 15*1000;
+    public static int DEFAULT_INTERVAL = 30*1000;
     public static int DEFAULT_DELAY = 500;
+    public static int SOCKET_TIMEOUT = 5*1000;
     private Timer t;
     private MyTask mt;
     private TargetGenerator targetGenerator;
@@ -72,8 +73,10 @@ public class Sender {
                 Set<InetSocketAddress> targets = targetGenerator.getTargetsList();
                 for(InetSocketAddress isa : targets){
                     try{
+                        System.out.println("Messaggio con "+isa);
                         Socket s = new Socket();
-                        s.connect(isa);
+                        //s.setSoTimeout(SOCKET_TIMEOUT);
+                        s.connect(isa,SOCKET_TIMEOUT);
                         s.getOutputStream().write(msg);
                         s.getOutputStream().close();
                         try{
@@ -82,12 +85,12 @@ public class Sender {
                         try{
                             s.close();
                         }catch(IOException e){}
-                    }catch(ConnectException e){
+                    }catch(IOException e){
                         if(connFailedCB != null)
                             connFailedCB.connectionFailed(isa);
                     }
                 }
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
             }
         }

@@ -17,14 +17,15 @@ import java.util.logging.Logger;
 import org.seco.qp.engine.routing.util.MessageReceivedCallback;
 import org.seco.qp.engine.routing.util.MessageStreamReader;
 import org.seco.qp.engine.routing.util.MessageStreamWriter;
+import org.seco.qp.engine.routing.util.ScheduledCallback;
 
 /**
  *
  * @author eros
  */
-public class ServiceRepositoryProxy implements MessageReceivedCallback {
+public class ServiceRepositoryProxy implements MessageReceivedCallback, ScheduledCallback.Callback {
 
-    public static int DEFAULT_INTERVAL = 60*1000;//*60*1000;
+    public static int DEFAULT_INTERVAL = 5*60*1000;//*60*1000;
     public static long BAN_TIME = 5*60*1000;
 
     private final EngineInfo thisEngine;
@@ -32,6 +33,8 @@ public class ServiceRepositoryProxy implements MessageReceivedCallback {
     private LocalMap map = null;
     private long lastUpdateTime = 0;
     private Map<EngineInfo, Long> bannedEngines;
+    private int interval;
+    private final ScheduledCallback scb;
 
     public ServiceRepositoryProxy(final EngineInfo thisEngine) throws IOException{
         this(thisEngine, "127.0.0.1", ServiceRepositoryProvider.DEFAULT_PORT);
@@ -53,7 +56,9 @@ public class ServiceRepositoryProxy implements MessageReceivedCallback {
         this.repoAddr = repoAddr;
         this.thisEngine = thisEngine;
         bannedEngines = new TreeMap<EngineInfo, Long>();
+        this.interval = interval;
         updateLocalMap();
+        scb = new ScheduledCallback(this, interval, interval);
     }
 
     @SuppressWarnings("SleepWhileHoldingLock")
@@ -84,7 +89,7 @@ public class ServiceRepositoryProxy implements MessageReceivedCallback {
     }
 
     private void updateIfNecessary() throws IOException{
-        if(System.currentTimeMillis() - lastUpdateTime > DEFAULT_INTERVAL)
+        if(System.currentTimeMillis() - lastUpdateTime > interval)
             updateLocalMap();
     }
 
@@ -133,13 +138,15 @@ public class ServiceRepositoryProxy implements MessageReceivedCallback {
     public void banEngine(EngineInfo ei){
         if(bannedEngines.containsKey(ei))
             bannedEngines.remove(ei);
-        System.out.println("Banning engine: "+ei);
+        System.out.println("Banning engine: "+ei.getName());
         bannedEngines.put(ei, System.currentTimeMillis()+BAN_TIME);
     }
 
     public void removeBanEngine(EngineInfo ei){
-        if(bannedEngines.containsKey(ei))
+        if(bannedEngines.containsKey(ei)){
+            System.out.println("Removing ban for engine "+ei);
             bannedEngines.remove(ei);
+        }
     }
 
     private Set<EngineInfo> filterBanned(final Set<EngineInfo> list){
@@ -153,6 +160,7 @@ public class ServiceRepositoryProxy implements MessageReceivedCallback {
         return set;
     }
 
+    @Override
     public void messageReceived(Object o) {
         if(o instanceof LocalMap){
             if(o == null)
@@ -170,6 +178,15 @@ public class ServiceRepositoryProxy implements MessageReceivedCallback {
                 System.out.println(e.getName()+" supports "+s.getName());
          * 
          */
+    }
+
+    @Override
+    public void callback() {
+        try {
+            updateIfNecessary();
+        } catch (IOException ex) {
+            Logger.getLogger(ServiceRepositoryProxy.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
 }

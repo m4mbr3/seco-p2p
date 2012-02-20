@@ -85,23 +85,11 @@ public class EngineInfo implements Serializable, Comparable {
     }
 
     public InetSocketAddress getSocketAddress() {
-        try {
-            InetAddress ia = InetAddress.getByName(host);
-            return new InetSocketAddress(ia, port);
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(EngineInfo.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
-        }
+        return new InetSocketAddress(host, port);
     }
 
     public InetSocketAddress getAliveSocketAddress() {
-        try {
-            InetAddress ia = InetAddress.getByName(host);
-            return new InetSocketAddress(ia, alivePort);
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(EngineInfo.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
-        }
+        return new InetSocketAddress(host, alivePort);
     }
 
     @Override
