@@ -8,6 +8,8 @@ package org.seco.qp.engine.routing;
 import java.io.Serializable;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import org.seco.qp.engine.routing.util.Serializer;
 
 /**
@@ -28,8 +30,8 @@ class Message implements Serializable {
 
     @Override
     public String toString(){
-        int time = (int)(System.currentTimeMillis()/1000);
-        return "Engine "+from.getName()+" is alive at "+time+" with metrics "+m;
+        long time = System.currentTimeMillis();
+        return "Engine "+from.getName()+" is alive at "+timestampToString(time)+" with metrics "+m.evaluate();
     }
 
     public EngineInfo getEngine(){
@@ -42,6 +44,12 @@ class Message implements Serializable {
 
     public long getTimestamp(){
         return timestamp;
+    }
+
+    private static String timestampToString(long time){
+        Calendar c = Calendar.getInstance();
+        c.setTimeInMillis(time);
+        return new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(c.getTime());
     }
     
 }
@@ -60,6 +68,8 @@ final class LocalMetrics implements Metrics {
     public LocalMetrics(){
         OperatingSystemMXBean os = ManagementFactory.getOperatingSystemMXBean();
         this.load = os.getSystemLoadAverage() / os.getAvailableProcessors();
+        if(load < 0)
+            load = 0.75;
     }
 
     /**
@@ -69,10 +79,12 @@ final class LocalMetrics implements Metrics {
         this.load = load;
     }
 
+    @Override
     public int evaluate(){
-        return (int) Math.round(this.load*SCALE_FACTOR);
+        return (int) Math.round(SCALE_FACTOR * Math.pow(Math.E, -load));
     }
 
+    @Override
     public int compareTo(Object t) {
         if(t instanceof Metrics){
             return evaluate()- ((Metrics) t).evaluate();

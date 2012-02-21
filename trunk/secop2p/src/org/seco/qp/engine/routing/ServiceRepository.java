@@ -58,6 +58,7 @@ public class ServiceRepository {
     public ServiceRepository(String db_conn) throws SQLException, ClassNotFoundException{
         Class.forName("org.sqlite.JDBC");
         conn = DriverManager.getConnection( db_conn );
+        conn.setAutoCommit(true);
         selectServicesList = conn.prepareStatement(
                 "SELECT * FROM services");
         selectEnginesList = conn.prepareStatement(

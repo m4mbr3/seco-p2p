@@ -15,8 +15,6 @@ import java.nio.channels.SocketChannel;
 import java.sql.SQLException;
 import java.util.Set;
 import org.seco.qp.engine.routing.util.Listener;
-import org.seco.qp.engine.routing.util.ListenerCallback;
-import org.seco.qp.engine.routing.util.MessageReceivedCallback;
 import org.seco.qp.engine.routing.util.MessageStreamReader;
 import org.seco.qp.engine.routing.util.MessageStreamWriter;
 
@@ -24,7 +22,7 @@ import org.seco.qp.engine.routing.util.MessageStreamWriter;
  *
  * @author eros
  */
-public final class ServiceRepositoryProvider implements ListenerCallback, MessageReceivedCallback {
+public final class ServiceRepositoryProvider implements Listener.ListenerCallback, MessageStreamReader.MessageReceivedCallback {
 
     public static final int DEFAULT_PORT = 8000;
     public static final int INVALIDATE_ENGINE_LAST_UPDATE_DELTA = 60*60*1000;
@@ -69,6 +67,7 @@ public final class ServiceRepositoryProvider implements ListenerCallback, Messag
         return new LocalMap(engines, services, relations);
     }
 
+    @Override
     public void handleRequest(SocketChannel client) {
         try {
             MessageStreamReader msr = new MessageStreamReader(client, this);
@@ -92,6 +91,7 @@ public final class ServiceRepositoryProvider implements ListenerCallback, Messag
         ServiceRepositoryProvider srp = new ServiceRepositoryProvider();
     }
 
+    @Override
     public void messageReceived(Object o) {
         try {
             if(o instanceof EngineInfo){
@@ -106,12 +106,12 @@ public final class ServiceRepositoryProvider implements ListenerCallback, Messag
                 Relation r = (Relation) o;
                 if(!sr.getRelationList().contains(r))
                     sr.addRelServiceEngine(r.getService(), r.getEngine());
-            }else if(o instanceof AliveMessage){
-                AliveMessage am = (AliveMessage) o;
-                EngineInfo from = am.getFrom();
+            }else if(o instanceof Message){
+                Message m = (Message) o;
+                EngineInfo from = m.getEngine();
                 if(!sr.getEnginesList().contains(from))
                     sr.addNewEngine(from);
-                sr.updateLastAliveTimestamp(from, am.getTimestamp());
+                sr.updateLastAliveTimestamp(from, m.getTimestamp());
             }
         } catch (SQLException ex) {
             Logger.getLogger(ServiceRepositoryProvider.class.getName()).log(Level.SEVERE, null, ex);

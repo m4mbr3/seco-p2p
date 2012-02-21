@@ -45,7 +45,23 @@ public final class LocalMap implements Serializable{
 
     @Override
     public String toString(){
-        return Serializer.toXML(this);
+        StringBuilder sb = new StringBuilder();
+        sb.append("<LocalMap>\n");
+        sb.append("\t<EngineList>");
+        for(EngineInfo ei : engines)
+            sb.append(ei.getName()+" ");
+        sb.append("</EngineList>\n");
+        sb.append("\t<ServiceList>\n");
+        for(Service s : services.keySet()){
+            sb.append("\t\t"+s.getName()+" -> ");
+            for(EngineInfo ei : services.get(s))
+                sb.append(ei.getName()+", ");
+            sb.append("\n");
+        }
+        sb.append("\t</ServiceList>\n");
+        sb.append("</LocalMap>");
+        //return Serializer.toXML(this);
+        return sb.toString();
     }
 
     public static void main(String[] args) throws SQLException, ClassNotFoundException, IOException, NoSuchMethodException {

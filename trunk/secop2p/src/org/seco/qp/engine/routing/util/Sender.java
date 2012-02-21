@@ -6,7 +6,6 @@
 package org.seco.qp.engine.routing.util;
 
 import java.io.IOException;
-import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Set;
@@ -21,7 +20,7 @@ import java.util.logging.Logger;
  */
 public class Sender {
 
-    public static int DEFAULT_INTERVAL = 30*1000;
+    public static int DEFAULT_INTERVAL = 5*1000;
     public static int DEFAULT_DELAY = 500;
     public static int SOCKET_TIMEOUT = 5*1000;
     private Timer t;
@@ -73,7 +72,7 @@ public class Sender {
                 Set<InetSocketAddress> targets = targetGenerator.getTargetsList();
                 for(InetSocketAddress isa : targets){
                     try{
-                        System.out.println("Messaggio con "+isa);
+                        //System.out.println("Messaggio con "+isa);
                         Socket s = new Socket();
                         //s.setSoTimeout(SOCKET_TIMEOUT);
                         s.connect(isa,SOCKET_TIMEOUT);

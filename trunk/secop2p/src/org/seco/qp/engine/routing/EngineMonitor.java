@@ -18,7 +18,6 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.seco.qp.engine.routing.util.Listener;
-import org.seco.qp.engine.routing.util.ListenerCallback;
 import org.seco.qp.engine.routing.util.Sender;
 import org.seco.qp.engine.routing.util.Serializer;
 
@@ -26,7 +25,7 @@ import org.seco.qp.engine.routing.util.Serializer;
  *
  * @author eros
  */
-public class EngineMonitor implements ListenerCallback, Sender.MessageGenerator, 
+public class EngineMonitor implements Listener.ListenerCallback, Sender.MessageGenerator,
         Sender.TargetGenerator, Sender.ConnectionFailedCallback {
 
     private final EngineInfo engineInfo;

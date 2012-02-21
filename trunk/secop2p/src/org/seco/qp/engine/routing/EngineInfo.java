@@ -1,11 +1,7 @@
 package org.seco.qp.engine.routing;
 
 import java.io.Serializable;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.seco.qp.engine.routing.util.Serializer;
 
 /**
