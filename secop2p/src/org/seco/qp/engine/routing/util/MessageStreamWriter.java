@@ -41,6 +41,18 @@ public class MessageStreamWriter {
         } catch (IOException ex) {
             Logger.getLogger(MessageStreamWriter.class.getName()).log(Level.SEVERE, null, ex);
         }
+        if(o instanceof MessageStreamEnd){
+            try {
+                //System.out.println("chiuso output");
+                sc.socket().shutdownOutput();
+            } catch (IOException ex) {
+                //Logger.getLogger(MessageStreamWriter.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            if(sc.socket().isInputShutdown()){
+                //System.out.println("chiudo il socket");
+                MessageStreamEnd.closeSocketChannel(sc);
+            }
+        }
     }
 
     public void close(){

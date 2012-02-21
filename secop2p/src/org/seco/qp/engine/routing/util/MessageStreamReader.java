@@ -41,6 +41,7 @@ public class MessageStreamReader implements Runnable {
         this.timeout = timeout;
     }
 
+    @Override
     public void run(){
         stopped = false;
         boolean newMessage = true;
@@ -101,11 +102,32 @@ public class MessageStreamReader implements Runnable {
                 Logger.getLogger(MessageStreamReader.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+        try {
+            //System.out.println("chiuso input");
+            sc.socket().shutdownInput();
+        } catch (IOException ex) {
+            //Logger.getLogger(MessageStreamReader.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            s.close();
+        } catch (IOException ex) {
+            Logger.getLogger(MessageStreamReader.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if(sc.socket().isOutputShutdown()){
+            //System.out.println("chiudo il socket");
+            MessageStreamEnd.closeSocketChannel(sc);
+        }
         stopped = true;
     }
 
     public void stop(){
         stopped = true;
+    }
+
+    public interface MessageReceivedCallback {
+
+        public void messageReceived(Object o);
+
     }
 
 }

@@ -5,8 +5,6 @@
  */
 package org.seco.qp.engine.invokers;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Level;
 
@@ -14,12 +12,10 @@ import org.eclipse.jetty.client.ContentExchange;
 import org.eclipse.jetty.client.HttpClient;
 import org.seco.common.data.Tuple;
 import org.seco.common.data.TupleType;
-import org.seco.qp.model.methods.SPARQLService.Prefix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URLEncoder;

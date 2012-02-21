@@ -14,18 +14,17 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.seco.qp.engine.routing.util.MessageReceivedCallback;
 import org.seco.qp.engine.routing.util.MessageStreamReader;
 import org.seco.qp.engine.routing.util.MessageStreamWriter;
-import org.seco.qp.engine.routing.util.ScheduledCallback;
+import org.seco.qp.engine.routing.util.Scheduler;
 
 /**
  *
  * @author eros
  */
-public class ServiceRepositoryProxy implements MessageReceivedCallback, ScheduledCallback.Callback {
+public class ServiceRepositoryProxy implements MessageStreamReader.MessageReceivedCallback, Scheduler.Callback {
 
-    public static int DEFAULT_INTERVAL = 5*60*1000;//*60*1000;
+    public static int DEFAULT_INTERVAL = 30*1000;//*60*1000;
     public static long BAN_TIME = 5*60*1000;
 
     private final EngineInfo thisEngine;
@@ -34,7 +33,7 @@ public class ServiceRepositoryProxy implements MessageReceivedCallback, Schedule
     private long lastUpdateTime = 0;
     private Map<EngineInfo, Long> bannedEngines;
     private int interval;
-    private final ScheduledCallback scb;
+    private final Scheduler scb;
 
     public ServiceRepositoryProxy(final EngineInfo thisEngine) throws IOException{
         this(thisEngine, "127.0.0.1", ServiceRepositoryProvider.DEFAULT_PORT);
@@ -58,7 +57,7 @@ public class ServiceRepositoryProxy implements MessageReceivedCallback, Schedule
         bannedEngines = new TreeMap<EngineInfo, Long>();
         this.interval = interval;
         updateLocalMap();
-        scb = new ScheduledCallback(this, interval, interval);
+        scb = new Scheduler(this, interval, interval);
     }
 
     @SuppressWarnings("SleepWhileHoldingLock")
@@ -66,14 +65,13 @@ public class ServiceRepositoryProxy implements MessageReceivedCallback, Schedule
         final int timeout = 5000;
         final long callTime = System.currentTimeMillis();
         final SocketChannel sc = SocketChannel.open(repoAddr);
+        final MessageStreamReader msr = new MessageStreamReader(sc, this);
+        new Thread(msr).start();
         final MessageStreamWriter msw = new MessageStreamWriter(sc);
         //TODO get real metrics
         Metrics m = new LocalMetrics();
-        msw.writeMessage(new AliveMessage(thisEngine, m));
+        msw.writeMessage(new Message(thisEngine, m));
         msw.close();
-        final MessageStreamReader msr = new MessageStreamReader(sc, this);
-        msr.run();
-        sc.close();
 
         do{
             try {
@@ -144,7 +142,7 @@ public class ServiceRepositoryProxy implements MessageReceivedCallback, Schedule
 
     public void removeBanEngine(EngineInfo ei){
         if(bannedEngines.containsKey(ei)){
-            System.out.println("Removing ban for engine "+ei);
+            System.out.println("Removing ban for engine "+ei.getName());
             bannedEngines.remove(ei);
         }
     }

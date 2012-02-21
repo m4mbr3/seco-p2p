@@ -5,7 +5,6 @@
 
 package org.seco.qp.engine.routing.util;
 
-import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -102,44 +101,15 @@ public class Listener extends Thread {
             try {
                 callback.handleRequest(sc);
             } finally {
-                try{
-                    sc.close();
-                }catch(IOException e){
-                    //Do nothing
-                }
+                MessageStreamEnd.closeSocketChannel(sc);
             }
-                /*
-                try {
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                byte[] buf = new byte[4096];
-                int rbytes;
-                while( (rbytes = sc.socket().getInputStream().read(buf)) > -1){
-                baos.write(buf,0,rbytes);
-                }
-                baos.close();
-                try{
-                sc.socket().getInputStream().close();
-                }catch(SocketException e){}
-                try{
-                sc.socket().getOutputStream().close();
-                }catch(SocketException e){}
-                try{
-                sc.socket().close();
-                }catch(SocketException e){}
-                try{
-                sc.close();
-                }catch(SocketException e){}
-                // invoke the callback with the received text
-                callback.invoke(callee, baos.toByteArray());
-                } catch (IOException ex) {
-                Logger.getLogger(Listener.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IllegalAccessException ex) {
-                Logger.getLogger(Listener.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (InvocationTargetException ex) {
-                Logger.getLogger(Listener.class.getName()).log(Level.SEVERE, null, ex);
-                Logger.getLogger(Listener.class.getName()).log(Level.SEVERE, null, ex.getCause());
-                }*/
         }
+
+    }
+
+    public interface ListenerCallback {
+
+        public void handleRequest( SocketChannel client );
 
     }
 

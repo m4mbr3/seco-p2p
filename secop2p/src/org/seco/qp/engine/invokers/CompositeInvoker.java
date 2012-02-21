@@ -78,6 +78,13 @@ public class CompositeInvoker implements Invoker {
     }
 
     private void loadConfig(){
+        boolean skip = true;
+        if(serviceRepoProxy == null
+                || thisEngine == null
+                || engineMonitor == null)
+            skip = false;
+        if(skip)
+            return;
         String propertiesFile = "../../../resources/org/seco/qp/server/default.properties";
         propertiesFile = propertiesFile.replace("/", File.separator);
         if(System.getenv().containsKey("SECO_CONF"))

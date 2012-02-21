@@ -12,18 +12,18 @@ import java.util.TimerTask;
  *
  * @author eros
  */
-public class ScheduledCallback {
+public class Scheduler {
 
     public static int DEFAULT_DELAY = 500;
 
     private final Timer t;
     private final TimerTask tt;
 
-    public ScheduledCallback(final Callback cb, final int interval){
+    public Scheduler(final Callback cb, final int interval){
         this(cb, DEFAULT_DELAY, interval);
     }
 
-    public ScheduledCallback(final Callback cb, final int delay, final int interval){
+    public Scheduler(final Callback cb, final int delay, final int interval){
         t = new Timer();
         Runtime.getRuntime().addShutdownHook(new Thread(){
             @Override
